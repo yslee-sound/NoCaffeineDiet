@@ -16,14 +16,14 @@ val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name
 }
 
 android {
-    namespace = "com.sweetapps.nosmoketimer"
+    namespace = "com.sweetapps.nocaffeinediet"
     compileSdk = 36
 
     val releaseVersionCode = 2025101300
-    val releaseVersionName = "1.0.2"
+    val releaseVersionName = "1.0.0"
 
     defaultConfig {
-        applicationId = "com.sweetapps.nosmoketimer"
+        applicationId = "com.sweetapps.nocaffeinediet"
         minSdk = 21
         targetSdk = 36
         versionCode = releaseVersionCode

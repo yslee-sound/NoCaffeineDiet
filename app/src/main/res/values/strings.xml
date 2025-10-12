@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NoSmoke Timer</string>
+    <string name="app_name">NoCaffeine Diet</string>
 
     <!-- AllRecords screen strings -->
     <string name="all_records_title">모든 기록</string>
