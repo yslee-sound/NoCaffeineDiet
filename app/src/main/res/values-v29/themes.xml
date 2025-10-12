@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 10+ (API 29+)에서 상태바/내비바 대비 강제(구분선 느낌의 스크림)를 끄기 -->
+    <style name="Theme.NoSmokeTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <!-- 기존 설정 유지 -->
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <!-- 대비 강제 해제: 얕은 상단 구분선 제거 -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- 오버레이 제거 -->
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Theme.NoSmokeTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.NoSmokeTimer</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- 대비 강제 해제 및 오버레이 제거 -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>

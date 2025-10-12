@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.NoSmokeTimer"
+        tools:targetApi="31">
+
+        <!-- 메인 액티비티 (시작 화면) -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.start.StartActivity"
+            android:exported="true"
+            android:theme="@style/Theme.NoSmokeTimer.Splash"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 기록 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.records.RecordsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 모든 기록 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.records.AllRecordsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 레벨 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.level.LevelActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 설정 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.settings.SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 금연 진행 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.run.RunActivity"
+            android:exported="false"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 금연 종료 확인 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.run.QuitActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 세부 기록 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.detail.DetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 별명 편집 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.profile.NicknameEditActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 사용자 기록 추가 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.addrecord.AddRecordActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 앱 정보 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.about.AboutActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+        <!-- 오픈 라이선스 상세 화면 -->
+        <activity
+            android:name="com.sweetapps.nosmoketimer.feature.about.AboutLicensesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.NoSmokeTimer" />
+
+    </application>
+
+</manifest>
