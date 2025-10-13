@@ -3,7 +3,7 @@ package com.sweetapps.nocaffeinediet.feature.level
 import androidx.compose.ui.graphics.Color
 
 /**
- * 금연 레벨 정의를 위한 공통 객체
+ * 노카페인 레벨 정의를 위한 공통 객체
  */
 object LevelDefinitions {
     data class LevelInfo(val name: String, val start: Int, val end: Int, val color: Color)
@@ -15,7 +15,7 @@ object LevelDefinitions {
         LevelInfo("습관의 탄생", 30, 59, Color(0xFF43A047)),   // 밝은 초록
         LevelInfo("계속되는 도전", 60, 119, Color(0xFFFDD835)), // 노랑
         LevelInfo("거의 1년", 120, 239, Color(0xFFFB8C00)),   // 주황
-        LevelInfo("금연 마스터", 240, 364, Color(0xFFE53935)), // 빨강
+        LevelInfo("노카페인 마스터", 240, 364, Color(0xFFE53935)), // 빨강
         LevelInfo("절제의 레전드", 365, Int.MAX_VALUE, Color(0xFF8E24AA)) // 보라
     )
 
@@ -27,4 +27,3 @@ object LevelDefinitions {
         return levels.firstOrNull { days in it.start..it.end } ?: levels.first()
     }
 }
-

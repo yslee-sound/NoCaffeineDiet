@@ -10,7 +10,7 @@ Naming Rule: `snake_case`, 파라미터 키 24자 이하.
 | 우선 | 이벤트 | 트리거 시점 | KPI 연계 | 비고 |
 |------|--------|-------------|----------|------|
 | 1 | app_open | 앱 포그라운드 진입 (Splash/첫 Compose) | DAU, MAU | 자동 수집(on) 가능 시 중복 방지 | 
-| 2 | timer_start | 사용자가 금연 목표 시작 | Activation, StartedGoals | 기존 활성 목표 있으면 신규 시작 허용 여부 정책 반영 |
+| 2 | timer_start | 사용자가 노카페인 목표 시작 | Activation, StartedGoals | 기존 활성 목표 있으면 신규 시작 허용 여부 정책 반영 |
 | 3 | timer_complete | 목표 기간 달성/완료 처리 | CompletionRate, MASD | 성공 상태 확정 시 단 한 번 |
 | 4 | timer_fail | 목표 중단/실패 확정 | Fail Rate | 중복 방지 (complete와 상호 배타) |
 | 5 | goal_set | 목표 기본값(일수) 변경 | Activation 품질, 목표 분포 | settings UI 종료 시 |
@@ -179,5 +179,3 @@ class AnalyticsLogger(private val fa: FirebaseAnalytics) {
 | 날짜 | 변경 |
 |------|------|
 | 2025-10-05 | 최초 작성 |
-
-

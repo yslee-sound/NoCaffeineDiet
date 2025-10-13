@@ -39,6 +39,7 @@ import com.sweetapps.nocaffeinediet.feature.run.RunActivity
 import com.sweetapps.nocaffeinediet.feature.settings.SettingsActivity
 import com.sweetapps.nocaffeinediet.feature.start.StartActivity
 import kotlinx.coroutines.launch
+import com.sweetapps.nocaffeinediet.core.util.Constants.DEFAULT_NICKNAME
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -46,7 +47,7 @@ abstract class BaseActivity : ComponentActivity() {
     // Ensure declaration before first usage
     private fun getNickname(): String {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        return sharedPref.getString("nickname", "카없찡1") ?: "카없찡1"
+        return sharedPref.getString("nickname", DEFAULT_NICKNAME) ?: DEFAULT_NICKNAME
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +66,7 @@ abstract class BaseActivity : ComponentActivity() {
     // Returns the drawer menu title that matches current screen, or null if none
     private fun currentDrawerSelection(): String? = when (this) {
         is RunActivity, is StartActivity,
-        is com.sweetapps.nocaffeinediet.feature.run.QuitActivity -> "금연"
+        is com.sweetapps.nocaffeinediet.feature.run.QuitActivity -> "노카페인"
         is com.sweetapps.nocaffeinediet.feature.records.RecordsActivity,
         is com.sweetapps.nocaffeinediet.feature.records.AllRecordsActivity,
         is com.sweetapps.nocaffeinediet.feature.detail.DetailActivity -> "기록"
@@ -243,7 +244,7 @@ abstract class BaseActivity : ComponentActivity() {
 
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
-            "금연" -> {
+            "노카페인" -> {
                 val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
                 val startTime = sharedPref.getLong("start_time", 0L)
                 if (startTime > 0) {
@@ -288,7 +289,7 @@ fun DrawerMenu(
     onItemSelected: (String) -> Unit
 ) {
     val menuItems = listOf(
-        "금연" to Icons.Filled.PlayArrow,
+        "노카페인" to Icons.Filled.PlayArrow,
         "기록" to Icons.AutoMirrored.Filled.List,
         "레벨" to Icons.Filled.Star
     )

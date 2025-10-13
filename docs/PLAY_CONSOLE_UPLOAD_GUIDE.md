@@ -95,7 +95,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\release_pipeline.ps1
 ### 5-1. 최초 1회: 업로드 인증서 제출
 - https://play.google.com/console 접속 → 앱 생성/선택
 - App signing by Google Play(권장) 참여
-- `upload_cert.pem` 또는 지문(SHA‑1/256) 제출
+- `upload_cert.pem` 또는 지문(SHA–1/256) 제출
 
 ### 5-2. 내부 테스트(권장) 업로드
 1) Play Console → 테스트 → 내부 테스트 → 새 릴리스 만들기
@@ -112,8 +112,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\release_pipeline.ps1
 릴리스 노트 예시(ko)
 ```
 1.0.0 첫 공개 릴리스
-- 금연 목표 설정, 진행률/레벨 확인
-- 버그 수정 및 성능 개선
+- 노카페인 목표 설정, 진행률/레벨 확인
+- 버그 수정 및 성능 향상
 ```
 
 ---
@@ -152,5 +152,4 @@ gradlew.bat clean
 ```
 
 ---
-본 문서는 NoSmokeTimer 레포의 빌드/서명 규칙에 맞춰 작성되었습니다. 운영 중 발견한 개선점은 소규모 PR로 수시 반영하세요.
-
+본 문서는 NoSmokeTimer 레포의 빌드/서명 규칙에 맞춰 작성되었습니다. 운영 중 발견한 개선점은 소규모 PR로 수시 반영해주세요.

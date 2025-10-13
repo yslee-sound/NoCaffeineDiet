@@ -45,7 +45,7 @@ class RecordsActivity : BaseActivity() {
         refreshTrigger++
     }
 
-    override fun getScreenTitle(): String = "금연 기록"
+    override fun getScreenTitle(): String = "노카페인 기록"
 
     private fun handleCardClick(record: SobrietyRecord) {
         Log.d(TAG, "===== 카드 클릭 시작 =====")

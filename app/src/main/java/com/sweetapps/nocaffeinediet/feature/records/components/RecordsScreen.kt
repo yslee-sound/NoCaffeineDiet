@@ -392,7 +392,7 @@ private fun EmptyRecordsState() {
         }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "아직 금연 기록이 없습니다",
+            text = "아직 노카페인 기록이 없습니다",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
@@ -444,7 +444,7 @@ private fun PeriodHeaderRow(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "금연 기록 추가",
+                contentDescription = "노카페인 기록 추가",
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
@@ -656,7 +656,7 @@ private fun PeriodStatisticsSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "총 누적 금연일",
+                    text = "총 누적 노카페인일",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -812,8 +812,8 @@ private fun StatisticItem(
     }
 }
 
-@Preview(showBackground = true, name = "금연 기록 화면 - 빈 상태")
-@Preview(showBackground = true, name = "금연 기록 화면 - 데이터 있음", fontScale = 1.2f)
+@Preview(showBackground = true, name = "노카페인 기록 화면 - 빈 상태")
+@Preview(showBackground = true, name = "노카페인 기록 화면 - 데이터 있음", fontScale = 1.2f)
 @Composable
 fun PreviewRecordsScreen() {
     AlcoholicTimerTheme {

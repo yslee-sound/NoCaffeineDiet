@@ -52,13 +52,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.NoCaffeineDiet" />
 
-        <!-- 금연 진행 화면 -->
+        <!-- 노카페인 진행 화면 -->
         <activity
             android:name="com.sweetapps.nocaffeinediet.feature.run.RunActivity"
             android:exported="false"
             android:theme="@style/Theme.NoCaffeineDiet" />
 
-        <!-- 금연 종료 확인 화면 -->
+        <!-- 노카페인 종료 확인 화면 -->
         <activity
             android:name="com.sweetapps.nocaffeinediet.feature.run.QuitActivity"
             android:exported="false"

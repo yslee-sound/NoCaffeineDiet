@@ -113,7 +113,7 @@ private fun RunScreen() {
         "주 4회 이상" -> 5.0
         else -> 1.5
     }
-    // 새 금연 시간 매핑: 5/10/20분 -> 시간 단위(Double)
+    // 새 노카페인 시간 매핑: 5/10/20분 -> 시간 단위(Double)
     val drinkHoursVal = when (selectedDuration) {
         "짧음" -> 5.0 / 60.0
         "보통" -> 10.0 / 60.0

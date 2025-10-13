@@ -108,8 +108,8 @@ fun StatisticsCardsSection(
     }
 
     // 변경된 성공률 계산:
-    // 주간(weekStart/end 존재)일 때: (해당 주 금연 성공 일수 합 / 7일) * 100
-    //     - 금연 성공 일수: 주 범위와 기록 겹치는 일수 총합 (최대 7일로 cap)
+    // 주간(weekStart/end 존재)일 때: (해당 주 노카페인 성공 일수 합 / 7일) * 100
+    //     - 노카페인 성공 일수: 주 범위와 기록 겹치는 일수 총합 (최대 7일로 cap)
     // 그 외(월간 등): 기존 로직(시도별 목표 진행률 평균) 유지
     val successRate = if (weekStart != null && weekEnd != null) {
         val weeklySuccessDays = filteredRecords.sumOf { record ->
@@ -166,7 +166,7 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatCard(title = "총 금연일", value = "${totalDays}일", modifier = Modifier.weight(1f))
+            StatCard(title = "총 노카페인일", value = "${totalDays}일", modifier = Modifier.weight(1f))
             StatCard(title = "성공률", value = "${successRate}%", modifier = Modifier.weight(1f))
             StatCard(title = "시도 횟수", value = "${totalAttempts}회", modifier = Modifier.weight(1f))
         }

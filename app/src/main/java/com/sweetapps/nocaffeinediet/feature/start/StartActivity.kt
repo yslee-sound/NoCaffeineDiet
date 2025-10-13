@@ -83,7 +83,7 @@ class StartActivity : BaseActivity() {
         }
     }
 
-    override fun getScreenTitle(): String = "금연 설정"
+    override fun getScreenTitle(): String = "노카페인 설정"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -268,7 +268,7 @@ fun StartScreen() {
                         )
                     }
                     Text(
-                        text = "금연할 목표 기간을 입력해주세요",
+                        text = "노카페인 목표 기간을 입력해주세요",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colorResource(id = R.color.color_hint_gray),
                         textAlign = TextAlign.Center,
@@ -277,7 +277,7 @@ fun StartScreen() {
                 }
             }
 
-            // 카드 아래 중앙 여백을 파란 금연 아이콘으로 채움
+            // 카드 아래 중앙 여백을 파란 노카페인 아이콘으로 채움
             Spacer(modifier = Modifier.height(16.dp))
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth(),
@@ -309,7 +309,7 @@ fun StartScreen() {
                     if (bitmap != null) {
                         Image(
                             bitmap = bitmap,
-                            contentDescription = "금연 아이콘",
+                            contentDescription = "노카페인 아이콘",
                             modifier = Modifier.fillMaxSize().padding(insetPadding),
                             filterQuality = FilterQuality.None,
                             alpha = 0.3f // 더 흐리게

@@ -25,6 +25,7 @@ object Constants {
     const val DEFAULT_COST = "중" // 기본값 ‘중’은 최초 실행(또는 데이터 초기화)에서만 적용됩니다.
     const val DEFAULT_FREQUENCY = "주 1~2회"
     const val DEFAULT_DURATION = "보통"
+    const val DEFAULT_NICKNAME = "커피런1"
 
     const val TEST_MODE_REAL = 0
     const val TEST_MODE_MINUTE = 1
@@ -42,8 +43,8 @@ object Constants {
 
     const val RESULT_SCREEN_DELAY = 2000
     const val DEFAULT_VALUE = 2000
-    const val DEFAULT_HANGOVER_HOURS = 5 // deprecated: 음주 맥락 전용. 금연에서는 사용하지 않음.
-    const val DEFAULT_SMOKE_OVERHEAD_MINUTES = 5 // 금연 오버헤드(정리/이동/준비) 분 단위
+    const val DEFAULT_HANGOVER_HOURS = 5 // deprecated: 음주 맥락 전용. 노카페인에서는 사용하지 않음.
+    const val DEFAULT_SMOKE_OVERHEAD_MINUTES = 5 // 노카페인 오버헤드(정리/이동/준비) 분 단위
 
     val LEVEL_TIME_UNIT_MILLIS: Long get() = DAY_IN_MILLIS
     val LEVEL_TIME_UNIT_TEXT: String get() = "일"

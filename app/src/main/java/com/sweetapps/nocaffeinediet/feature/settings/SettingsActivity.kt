@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,39 +50,56 @@ fun SettingsScreen() {
 
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        SettingsCard(title = "금연 비용", titleColor = colorResource(id = R.color.color_indicator_money)) {
-            SettingsOptionGroup(
-                selectedOption = selectedCost,
-                options = listOf("저", "중", "고"),
-                labels = listOf(
-                    "저 (하루 한갑 이하)",
-                    "중 (하루 한갑 정도)",
-                    "고 (하루 한갑 이상)"
-                ),
-                onOptionSelected = { newValue -> selectedCost = newValue; sharedPref.edit { putString("selected_cost", newValue) } }
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Subtle centered watermark in the background
+        Image(
+            painter = painterResource(id = R.drawable.settings_bg_watermark),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(260.dp)
+                .padding(8.dp),
+            contentScale = ContentScale.Fit,
+            alpha = 0.05f
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SettingsCard(title = "노카페인 비용", titleColor = colorResource(id = R.color.color_indicator_money)) {
+                SettingsOptionGroup(
+                    selectedOption = selectedCost,
+                    options = listOf("저", "중", "고"),
+                    labels = listOf(
+                        "저 (하루 한갑 이하)",
+                        "중 (하루 한갑 정도)",
+                        "고 (하루 한갑 이상)"
+                    ),
+                    onOptionSelected = { newValue -> selectedCost = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_COST, newValue) } }
+                )
+            }
+            SettingsCard(title = "노카페인 빈도", titleColor = colorResource(id = R.color.color_progress_primary)) {
+                SettingsOptionGroup(
+                    selectedOption = selectedFrequency,
+                    options = listOf("주 1~2회", "주 3~4회", "매일"),
+                    labels = listOf("주 1~2회", "주 3~4회", "매일"),
+                    onOptionSelected = { newValue -> selectedFrequency = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_FREQUENCY, newValue) } }
+                )
+            }
+            SettingsCard(title = "노카페인 시간", titleColor = colorResource(id = R.color.color_indicator_hours)) {
+                SettingsOptionGroup(
+                    selectedOption = selectedDuration,
+                    options = listOf("짧음", "보통", "길게"),
+                    labels = listOf("짧음 (10분 이하)", "보통 (10분 정도)", "길게 (10분 이상)"),
+                    onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_DURATION, newValue) } }
+                )
+            }
+            Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
         }
-        SettingsCard(title = "금연 빈도", titleColor = colorResource(id = R.color.color_progress_primary)) {
-            SettingsOptionGroup(
-                selectedOption = selectedFrequency,
-                options = listOf("주 1~2회", "주 3~4회", "매일"),
-                labels = listOf("주 1~2회", "주 3~4회", "매일"),
-                onOptionSelected = { newValue -> selectedFrequency = newValue; sharedPref.edit { putString("selected_frequency", newValue) } }
-            )
-        }
-        SettingsCard(title = "금연 시간", titleColor = colorResource(id = R.color.color_indicator_hours)) {
-            SettingsOptionGroup(
-                selectedOption = selectedDuration,
-                options = listOf("짧음", "보통", "길게"),
-                labels = listOf("짧음 (10분 이하)", "보통 (10분 정도)", "길게 (10분 이상)"),
-                onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString("selected_duration", newValue) } }
-            )
-        }
-        Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
     }
 }
 

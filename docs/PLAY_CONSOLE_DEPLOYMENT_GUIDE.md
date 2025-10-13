@@ -182,7 +182,7 @@ ls G:\Workspace\AlcoholicTimer\app\build\outputs\bundle\release\app-release.aab
 ```
 • TopAppBar와 선택 박스 간격 개선
 • In-App Update 기능 추가 - 앱 실행 시 자동 업데이트 알림
-• 금연 기록 화면 UI 개선
+• 노카페인 기록 화면 UI 개선
 • 버그 수정 및 성능 향상
 ```
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
+import com.sweetapps.nocaffeinediet.core.util.Constants.DEFAULT_NICKNAME
 
 class NicknameEditActivity : BaseActivity() {
     override fun getScreenTitle(): String = "별명 변경"
@@ -67,7 +68,7 @@ class NicknameEditActivity : BaseActivity() {
 
     private fun getNickname(): String {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        return sharedPref.getString("nickname", "카없찡1") ?: "카없찡1"
+        return sharedPref.getString("nickname", DEFAULT_NICKNAME) ?: DEFAULT_NICKNAME
     }
 
     private fun saveNickname(nickname: String) {

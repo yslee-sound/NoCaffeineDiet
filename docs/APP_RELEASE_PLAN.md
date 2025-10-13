@@ -9,7 +9,7 @@
 | 대상 플랫폼 | Android (minSdk / targetSdk 는 app 모듈 build.gradle.kts 기준) |
 | 배포 형태 | aab (App Bundle) 기본, 필요시 apk (QA / 사내 배포) |
 | 첫 상용 버전 | v1.0.0 (Semantic Versioning) |
-| 핵심 기능 동작 | 금연 기록 생성/조회/통계(주·월·년·전체), 목표 진행률/성공률, UI 정합성 |
+| 핵심 기능 동작 | 노카페인 기록 생성/조회/통계(주·월·년·전체), 목표 진행률/성공률, UI 정합성 |
 | 안정성 지표(초판) | 크래시 없는 기본 플로우 / ANR 0 / 치명적 버그 0 |
 | 성능 기준 | 첫 Cold Start < 2.5s (중저사양 기기), 스크롤 Drop Frame 5% 미만(프로파일링 참고) |
 | 보안/프라이버시 | 외부 전송 민감 데이터 없음, 추후 Analytics 도입 시 동의 플로우 추가 예정 |
@@ -83,7 +83,7 @@ signingConfigs {
 ---
 ## 6. 테스트 전략
 1. 단위 테스트: `gradlew.bat :app:testDebugUnitTest` (DateOverlapUtils / FormatUtils / PercentUtils / SobrietyRecord 커버)
-2. UI 간단 수동 시나리오 (금연 기록 플로우):
+2. UI 간단 수동 시나리오 (노카페인 기록 플로우):
    - 기록 추가 → 리스트 반영 → 주간/월간 탭 전환 → 성공률, 평균/최대 지속일 검증 → 삭제/수정(있다면) → 재시작 후 상태 유지.
 3. 경계 조건 수동:
    - 날짜 교차(주跨월), 0일짜리 잘못된 기록 없음, 목표일 < 실제일 처리.
@@ -129,7 +129,7 @@ signingConfigs {
 | 항목 | 내용 |
 |------|------|
 | 앱 이름 | AlcoholicTimer (국문 현지화 고려) |
-| 짧은 설명 | 금연 기록/성공률 트래커 |
+| 짧은 설명 | 노카페인 기록/성공률 트래커 |
 | 전체 설명 | 주요 기능 bullet + 개인정보 미수집 명시 |
 | 스크린샷 | 5~8장 (핵심 플로우: 홈, 주간 통계, 기록 상세, 추가 화면) |
 | 아이콘 | Adaptive Icon 512x512 / Foreground, Background 준비 |
@@ -177,11 +177,11 @@ Configuration cache entry stored.
 | 도구 | 초기 | 향후 |
 |------|------|------|
 | Crashlytics / Sentry | 도입 고려 (현재 미사용) | v1.1.x 에 편입 |
-| Analytics (Firebase) | 금연 성공 흐름 이벤트 | 개인정보 고지 필요 |
+| Analytics (Firebase) | 노카페인 성공 이벤트 | 개인정보 고지 필요 |
 | In-App Review | v1.0.1+ (안정화 후) | 시점: 3회 성공 또는 14일 유지 |
 
 메트릭(초판 수집 후보):
-- 활성 사용자(DAU/WAU), 금연 목표 달성률, 평균 세션 길이(선택), 재방문 주기.
+- 활성 사용자(DAU/WAU), 노카페인 목표 달성률, 평균 세션 길이(선택), 재방문 주기.
 
 ---
 ## 13. 위험 요소 & 완화 방안

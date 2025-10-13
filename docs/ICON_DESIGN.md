@@ -8,7 +8,7 @@
 |------|------|
 | 플랫폼 적합성 | Android 8.0+ Adaptive Icon / Android 13 테마 아이콘 대응 |
 | 시각적 일관성 | 다양한 런처 마스크(원형, 둥근사각, 물방울, 사각)에서 형태 유지 |
-| 인지성 | 축소(24dp급)에서도 금연/타이머 컨셉 직관적 전달 |
+| 인지성 | 축소(24dp급)에서도 노카페인/타이머 컨셉 직관적 전달 |
 | 유지보수 용이성 | Foreground/Monochrome 벡터 단일 경량 path 구조 |
 | 대비 & 접근성 | Light/Dark 및 Wallpaper 변화 상황에서도 식별성 확보 |
 
@@ -123,4 +123,3 @@ app/src/main/res/
 
 ---
 문서 갱신 시 변경 이력에 행 추가 후 커밋 메시지: `docs: update icon design guide` 권장.
-

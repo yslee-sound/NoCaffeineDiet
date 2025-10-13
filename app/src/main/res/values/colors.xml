@@ -2,8 +2,8 @@
 <resources>
     <!-- Launcher icon soft background tint (pure white) -->
     <color name="icon_launcher_bg">#FFFFFF</color>
-    <!-- Launcher icon foreground (brand blue, matches provided SVG stroke) -->
-    <color name="icon_launcher_fg">#2571FF</color>
+    <!-- Launcher icon foreground (brand color from attachment) -->
+    <color name="icon_launcher_fg">#A67373</color>
 
     <color name="color_progress_primary">#4CAF50</color>
     <color name="color_progress_track">#E8F5E8</color>
