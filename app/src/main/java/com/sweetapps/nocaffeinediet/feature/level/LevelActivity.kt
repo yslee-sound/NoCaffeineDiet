@@ -254,7 +254,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.ZERO),
-        border = null // 회색 테두리 제거
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
@@ -302,7 +302,7 @@ private fun LevelItem(
         border = when {
             isCurrent -> BorderStroke(1.5.dp, level.color)
             isAchieved -> BorderStroke(1.dp, level.color.copy(alpha = 0.6f))
-            else -> null // 회색 테두리 제거
+            else -> BorderStroke(0.75.dp, colorResource(id = R.color.color_border_light))
         },
         elevation = CardDefaults.cardElevation(defaultElevation = itemElevation)
     ) {

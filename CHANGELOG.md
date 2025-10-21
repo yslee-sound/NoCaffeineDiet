@@ -10,6 +10,7 @@
 
 ### Changed
 - (예정) 접근성 개선 (터치 타겟/콘트라스트)
+- 레벨 화면: ‘전체 레벨’ 섹션 내 레벨 카드 기본 테두리 두께 0.5dp → 0.75dp로 상향(현재/달성 항목 두께는 유지)
 
 ### Fixed
 - 상세 화면: 기록 삭제가 되지 않던 버그(JSON 키 불일치 start_time/end_time vs startTime/endTime) 수정
