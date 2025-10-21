@@ -27,7 +27,7 @@
     <color name="color_title_primary">#333333</color>
     <color name="color_bg_card_light">#F5F5F5</color>
     <color name="color_button_disabled">#CCCCCC</color>
-    <color name="color_border_light">#E0E0E0</color>
+    <color name="color_border_light">#EEF1F5</color>
     <color name="color_radio_unselected">#757575</color>
     <color name="color_text_primary_dark">#424242</color>
     <color name="color_accent_blue">#2196F3</color>

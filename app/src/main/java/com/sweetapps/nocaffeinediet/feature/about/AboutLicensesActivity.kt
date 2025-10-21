@@ -1,5 +1,7 @@
 package com.sweetapps.nocaffeinediet.feature.about
 
+import android.content.ClipData
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -15,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,10 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
-import android.content.ClipData
-import android.content.ClipboardManager
-import androidx.core.content.ContextCompat
 import com.sweetapps.nocaffeinediet.R
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 class AboutLicensesActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)
@@ -42,6 +44,7 @@ class AboutLicensesActivity : BaseActivity() {
 @Composable
 private fun AboutLicensesScreen() {
     val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
     val ccByUrl = "https://creativecommons.org/licenses/by/4.0/"
     val sourceUrl = "https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set"
 
@@ -56,7 +59,7 @@ private fun AboutLicensesScreen() {
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -78,8 +81,7 @@ private fun AboutLicensesScreen() {
                         Text(
                             text = stringResource(R.string.action_copy),
                             modifier = Modifier.clickable {
-                                val cm = ContextCompat.getSystemService(context, ClipboardManager::class.java)
-                                cm?.setPrimaryClip(ClipData.newPlainText("source", sourceUrl))
+                                clipboard.setText(AnnotatedString(sourceUrl))
                                 Toast.makeText(context, context.getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
                             },
                             style = MaterialTheme.typography.labelSmall,

@@ -2,6 +2,7 @@ package com.sweetapps.nocaffeinediet.core.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,7 +27,7 @@ import com.sweetapps.nocaffeinediet.R
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
-    elevation: Dp = AppElevation.CARD, // default lowered from CARD_HIGH
+    elevation: Dp = AppElevation.CARD, // 플랫 기본 0dp
     shape: Shape = RoundedCornerShape(16.dp),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -37,7 +38,8 @@ fun AppCard(
 ) {
     val cardColors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor)
     val cardElevation = CardDefaults.cardElevation(defaultElevation = elevation)
-    val resolvedBorder = border ?: BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+    val borderColor = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.outlineVariant else colorResource(id = R.color.color_border_light)
+    val resolvedBorder = border ?: BorderStroke(AppBorder.Hairline, borderColor)
     if (onClick == null) {
         Card(
             modifier = modifier,

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.BorderStroke
@@ -36,7 +37,7 @@ fun PeriodSelectionSection(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         ) {
             Row(
                 modifier = Modifier
@@ -75,7 +76,7 @@ fun PeriodSelectionSection(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         ) {
             Row(
                 modifier = Modifier

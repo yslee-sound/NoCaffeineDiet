@@ -41,9 +41,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -608,7 +606,7 @@ private fun PeriodStatisticsSection(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
         Column(
             modifier = Modifier

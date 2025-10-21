@@ -22,6 +22,7 @@ import com.sweetapps.nocaffeinediet.R
 import com.sweetapps.nocaffeinediet.core.model.SobrietyRecord
 import com.sweetapps.nocaffeinediet.core.ui.AppAlphas
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -86,7 +87,7 @@ fun RecordSummaryCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = resolvedContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
         Column(
             modifier = Modifier

@@ -55,6 +55,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import android.graphics.Bitmap
 import com.sweetapps.nocaffeinediet.R
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -210,7 +211,7 @@ fun StartScreen() {
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(24.dp),

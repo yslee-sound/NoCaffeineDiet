@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -41,8 +42,8 @@ import kotlinx.coroutines.delay
 import com.sweetapps.nocaffeinediet.feature.start.StartActivity
 import com.sweetapps.nocaffeinediet.feature.detail.DetailActivity
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
-import androidx.compose.foundation.BorderStroke
 import com.sweetapps.nocaffeinediet.R
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 class RunActivity : BaseActivity() {
 
@@ -172,7 +173,7 @@ private fun RunScreen() {
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -190,7 +191,7 @@ private fun RunScreen() {
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
@@ -306,7 +307,7 @@ private fun RunScreen() {
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
             }

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
 import com.sweetapps.nocaffeinediet.core.util.Constants
 import com.sweetapps.nocaffeinediet.core.data.RecordsDataLoader
@@ -108,7 +109,7 @@ private fun CurrentLevelCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
         Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(

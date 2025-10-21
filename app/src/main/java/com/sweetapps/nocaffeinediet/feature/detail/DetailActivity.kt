@@ -50,6 +50,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 import androidx.core.content.edit // SharedPreferences 확장 함수 import 복구
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 class DetailActivity : ComponentActivity() {
 
@@ -267,7 +268,7 @@ fun DetailScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp)
