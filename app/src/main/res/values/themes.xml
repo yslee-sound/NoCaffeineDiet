@@ -13,11 +13,9 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <!-- 스플래시 테마(Pre-Android 12 + backport용) -->
-    <style name="Theme.NoCaffeineDiet.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 즉시 흰 화면 보장 + 중앙에 새 아이콘 표시 -->
-        <item name="android:windowBackground">@drawable/splash_screen</item>
-        <!-- backport가 읽는 속성들 (호환 사용 시 적용) -->
+    <!-- 스플래시 테마: androidx.core SplashScreen 권장 구성 사용 -->
+    <style name="Theme.NoCaffeineDiet.Splash" parent="Theme.SplashScreen">
+        <!-- 라이브러리 속성들만 사용하여 내부 splash_screen_view inflate 시 속성 누락 방지 -->
         <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>

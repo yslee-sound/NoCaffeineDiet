@@ -27,7 +27,22 @@ fun NumberPicker(
     label: String = "",
     displayValues: List<String> = range.map { it.toString() }
 ) {
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = value - range.first)
+    // 빈 범위 방어: 호출 측 실수에도 크래시 없이 placeholder 렌더
+    if (range.isEmpty()) {
+        Box(
+            modifier = modifier.height(48.dp * 5).width(100.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "—", color = Color.Gray, fontSize = 16.sp)
+        }
+        return
+    }
+
+    val itemCount = range.count()
+    val clampedValue = value.coerceIn(range.first, range.last)
+    val initialIndex = (clampedValue - range.first).coerceIn(0, itemCount - 1)
+
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
     val coroutineScope = rememberCoroutineScope()
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
@@ -37,16 +52,16 @@ fun NumberPicker(
 
     LaunchedEffect(listState.isScrollInProgress) {
         if (!listState.isScrollInProgress) {
-            val currentIndex = listState.firstVisibleItemIndex
+            val currentIndex = listState.firstVisibleItemIndex.coerceIn(0, itemCount - 1)
             val currentValue = range.first + currentIndex
-            if (currentValue != value && currentValue in range) {
+            if (currentValue != clampedValue && currentValue in range) {
                 onValueChange(currentValue)
             }
         }
     }
 
-    LaunchedEffect(value) {
-        val targetIndex = value - range.first
+    LaunchedEffect(clampedValue, range.first) {
+        val targetIndex = (clampedValue - range.first).coerceIn(0, itemCount - 1)
         if (targetIndex != listState.firstVisibleItemIndex) {
             coroutineScope.launch { listState.animateScrollToItem(targetIndex) }
         }
@@ -67,12 +82,12 @@ fun NumberPicker(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(vertical = itemHeight * visibleItemsMiddle)
         ) {
-            items(range.count()) { index ->
+            items(itemCount) { index ->
                 val itemValue = range.first + index
                 val displayValue = if (displayValues.isNotEmpty() && index < displayValues.size) {
                     displayValues[index]
                 } else itemValue.toString()
-                val isSelected = itemValue == value
+                val isSelected = itemValue == clampedValue
                 Box(
                     modifier = Modifier.fillMaxWidth().height(itemHeight),
                     contentAlignment = Alignment.Center
@@ -98,4 +113,3 @@ fun NumberPicker(
         }
     }
 }
-

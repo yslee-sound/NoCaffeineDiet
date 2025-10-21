@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --- Keep rules: Google Play Core (In-App Updates) ---
+# Prevent R8 from obfuscating/removing Play Core update classes used via Play services
+-keep class com.google.android.play.** { *; }
+-dontwarn com.google.android.play.**
+
+# (Optional) Keep Kotlin coroutines Task await interop (usually safe, but quiets certain warnings)
+-dontwarn kotlinx.coroutines.tasks.**

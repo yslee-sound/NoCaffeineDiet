@@ -51,9 +51,11 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Install SplashScreen for Android 12+
-        val splashScreen: SplashScreen = installSplashScreen()
-        splashScreen.setOnExitAnimationListener { provider -> provider.remove() }
+        // Android SplashScreen은 런처(시작) 액티비티에서만 설치
+        if (this is StartActivity) {
+            val splashScreen: SplashScreen = installSplashScreen()
+            splashScreen.setOnExitAnimationListener { provider -> provider.remove() }
+        }
         super.onCreate(savedInstanceState)
         nicknameState.value = getNickname()
     }
