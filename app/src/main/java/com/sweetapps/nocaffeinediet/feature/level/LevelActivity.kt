@@ -3,6 +3,7 @@ package com.sweetapps.nocaffeinediet.feature.level
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -37,6 +38,7 @@ import com.sweetapps.nocaffeinediet.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.BorderStroke
 import com.sweetapps.nocaffeinediet.R
+import java.util.Locale
 
 class LevelActivity : BaseActivity() {
 
@@ -64,8 +66,8 @@ fun LevelScreen() {
         }
     }
 
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-    val startTime = sharedPref.getLong("start_time", 0L)
+    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+    val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
 
     val currentElapsedTime = if (startTime > 0) currentTime - startTime else 0L
 
@@ -186,26 +188,26 @@ private fun ProgressToNextLevel(
     remainingText: String,
     isSobrietyActive: Boolean
 ) {
-    var isVisible by remember { mutableStateOf(true) }
+    var blink by remember { mutableStateOf(true) }
 
     LaunchedEffect(remainingDays, isSobrietyActive) {
         if (remainingDays > 0 && isSobrietyActive) {
             while (true) {
                 delay(1000)
-                isVisible = !isVisible
+                blink = !blink
             }
         } else {
-            isVisible = true
+            blink = true
         }
     }
 
     val alpha by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0.6f,
-        animationSpec = tween(durationMillis = 800),
+        targetValue = if (blink) 1f else 0.3f,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
         label = "level_blink"
     )
 
-    val percentText = String.format("%.1f%%", (progress * 100f).coerceIn(0f, 100f))
+    val percentText = String.format(Locale.getDefault(), "%.1f%%", (progress * 100f).coerceIn(0f, 100f))
 
     Column(
         modifier = Modifier
@@ -227,8 +229,7 @@ private fun ProgressToNextLevel(
                 modifier = Modifier
                     .size(LevelUiTokens.IndicatorDot)
                     .clip(CircleShape)
-                    .background(currentLevel.color.copy(alpha = 0.6f))
-                    .graphicsLayer(alpha = alpha) // 인디케이터 점만 깜빡이도록 적용
+                    .background(currentLevel.color.copy(alpha = alpha)) // 러닝 화면과 동일한 방식으로 알파 적용
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -394,5 +395,5 @@ private object LevelUiTokens {
     val ProgressInnerHPadding = 16.dp
     val ProgressHeight = 8.dp
     val ProgressCorner = 4.dp
-    val IndicatorDot = 6.dp
+    val IndicatorDot = 6.dp // 러닝 화면과 동일하게 6dp
 }
