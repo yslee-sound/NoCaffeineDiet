@@ -4,20 +4,14 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,11 +19,17 @@ import androidx.core.content.edit
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
 import com.sweetapps.nocaffeinediet.core.util.Constants
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
 import com.sweetapps.nocaffeinediet.R
 import com.sweetapps.nocaffeinediet.core.ui.AppBorder
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollFactory
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
@@ -39,67 +39,92 @@ class SettingsActivity : BaseActivity() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val (initialCost, initialFrequency, initialDuration) = Constants.getUserSettings(context)
+    val (initialCost, initialFrequency, _) = Constants.getUserSettings(context)
     val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
 
     var selectedCost by remember { mutableStateOf(initialCost) }
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
-    var selectedDuration by remember { mutableStateOf(initialDuration) }
 
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // 문서 스펙: 실측 기반 스크롤 판정 및 외부 패딩 적용
+    val density = LocalDensity.current
+    val gap12Px = with(density) { 12.dp.roundToPx() }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Subtle centered watermark in the background
-        Image(
-            painter = painterResource(id = R.drawable.settings_bg_watermark),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(260.dp)
-                .padding(8.dp),
-            contentScale = ContentScale.Fit,
-            alpha = 0.05f
-        )
+    var viewportH by remember { mutableStateOf(0) }
+    var costH by remember { mutableStateOf(0) }
+    var freqH by remember { mutableStateOf(0) }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SettingsCard(title = "노카페인 비용", titleColor = colorResource(id = R.color.color_indicator_money)) {
-                SettingsOptionGroup(
-                    selectedOption = selectedCost,
-                    options = listOf("저", "중", "고"),
-                    labels = listOf(
-                        "저 (하루 한갑 이하)",
-                        "중 (하루 한갑 정도)",
-                        "고 (하루 한갑 이상)"
-                    ),
-                    onOptionSelected = { newValue -> selectedCost = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_COST, newValue) } }
-                )
+    val allowScroll by remember { derivedStateOf { (costH + freqH + gap12Px) > viewportH } }
+    val listState = rememberLazyListState()
+
+    val hPadding = 16.dp // H_PADDING 토큰이 없으므로 16.dp로 대체
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = hPadding, end = hPadding, top = 8.dp, bottom = 8.dp)
+            .onSizeChanged { viewportH = it.height }
+    ) {
+        val listContent: @Composable () -> Unit = {
+            LazyColumn(
+                state = listState,
+                userScrollEnabled = allowScroll,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(0.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Box(Modifier.onSizeChanged { costH = it.height }) {
+                        SettingsCard(
+                            title = "나의 카페인 스타일",
+                            titleColor = colorResource(id = R.color.color_indicator_money)
+                        ) {
+                            SettingsOptionGroup(
+                                selectedOption = selectedCost,
+                                options = listOf("가성비", "프랜차이즈", "프리미엄"),
+                                labels = listOf(
+                                    "가성비 (2,000원 이하)",
+                                    "프랜차이즈 (2,000원 ~ 5,000원)",
+                                    "프리미엄 (5,000원 이상)"
+                                ),
+                                onOptionSelected = { newValue ->
+                                    selectedCost = newValue
+                                    sharedPref.edit { putString(Constants.PREF_SELECTED_COST, newValue) }
+                                }
+                            )
+                        }
+                    }
+                }
+                item {
+                    Box(Modifier.onSizeChanged { freqH = it.height }) {
+                        SettingsCard(
+                            title = "일일 주입량",
+                            titleColor = colorResource(id = R.color.color_progress_primary)
+                        ) {
+                            SettingsOptionGroup(
+                                selectedOption = selectedFrequency,
+                                options = listOf("1잔", "2잔", "3잔 이상"),
+                                labels = listOf("1잔", "2잔", "3잔 이상"),
+                                onOptionSelected = { newValue ->
+                                    selectedFrequency = newValue
+                                    sharedPref.edit { putString(Constants.PREF_SELECTED_FREQUENCY, newValue) }
+                                }
+                            )
+                        }
+                    }
+                }
             }
-            SettingsCard(title = "노카페인 빈도", titleColor = colorResource(id = R.color.color_progress_primary)) {
-                SettingsOptionGroup(
-                    selectedOption = selectedFrequency,
-                    options = listOf("주 1~2회", "주 3~4회", "매일"),
-                    labels = listOf("주 1~2회", "주 3~4회", "매일"),
-                    onOptionSelected = { newValue -> selectedFrequency = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_FREQUENCY, newValue) } }
-                )
+        }
+
+        if (allowScroll) {
+            listContent()
+        } else {
+            CompositionLocalProvider(LocalOverscrollFactory provides null) {
+                listContent()
             }
-            SettingsCard(title = "노카페인 시간", titleColor = colorResource(id = R.color.color_indicator_hours)) {
-                SettingsOptionGroup(
-                    selectedOption = selectedDuration,
-                    options = listOf("짧음", "보통", "길게"),
-                    labels = listOf("짧음 (10분 이하)", "보통 (10분 정도)", "길게 (10분 이상)"),
-                    onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString(Constants.PREF_SELECTED_DURATION, newValue) } }
-                )
-            }
-            Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
         }
     }
 }
@@ -110,11 +135,16 @@ fun SettingsCard(title: String, titleColor: Color, content: @Composable () -> Un
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // lowered from CARD_HIGH
-        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light)) // added subtle border for depth
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = titleColor, modifier = Modifier.padding(bottom = 12.dp))
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = titleColor,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             content()
         }
     }
@@ -123,26 +153,40 @@ fun SettingsCard(title: String, titleColor: Color, content: @Composable () -> Un
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsOptionItem(isSelected: Boolean, label: String, onSelected: () -> Unit) {
-    Card(
-        onClick = onSelected,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isSelected) colorResource(id = R.color.color_accent_blue).copy(alpha = 0.1f) else colorResource(id = R.color.color_bg_card_light)),
-        border = if (isSelected) BorderStroke(2.dp, colorResource(id = R.color.color_accent_blue)) else BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.RadioButton, onClick = onSelected)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(selected = isSelected, onClick = onSelected, colors = RadioButtonDefaults.colors(selectedColor = colorResource(id = R.color.color_accent_blue), unselectedColor = colorResource(id = R.color.color_radio_unselected)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = label, style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyLarge, color = if (isSelected) colorResource(id = R.color.color_indicator_days) else colorResource(id = R.color.color_text_primary_dark))
-        }
+        RadioButton(
+            selected = isSelected,
+            onClick = onSelected,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = colorResource(id = R.color.color_accent_blue),
+                unselectedColor = colorResource(id = R.color.color_radio_unselected)
+            )
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = label,
+            style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyLarge,
+            color = if (isSelected) colorResource(id = R.color.color_indicator_days) else colorResource(id = R.color.color_text_primary_dark)
+        )
     }
 }
 
 @Composable
 fun SettingsOptionGroup(selectedOption: String, options: List<String>, labels: List<String>, onOptionSelected: (String) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         options.forEachIndexed { index, option ->
-            SettingsOptionItem(isSelected = selectedOption == option, label = labels[index], onSelected = { onOptionSelected(option) })
+            SettingsOptionItem(
+                isSelected = selectedOption == option,
+                label = labels[index],
+                onSelected = { onOptionSelected(option) }
+            )
         }
     }
 }

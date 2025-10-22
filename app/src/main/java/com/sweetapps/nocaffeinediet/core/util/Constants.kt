@@ -19,12 +19,10 @@ object Constants {
 
     const val PREF_SELECTED_COST = "selected_cost"
     const val PREF_SELECTED_FREQUENCY = "selected_frequency"
-    const val PREF_SELECTED_DURATION = "selected_duration"
     const val PREF_SETTINGS_INITIALIZED = "settings_initialized"
 
-    const val DEFAULT_COST = "중" // 기본값 ‘중’은 최초 실행(또는 데이터 초기화)에서만 적용됩니다.
-    const val DEFAULT_FREQUENCY = "주 1~2회"
-    const val DEFAULT_DURATION = "보통"
+    const val DEFAULT_COST = "프랜차이즈" // 새 기본값: 프랜차이즈
+    const val DEFAULT_FREQUENCY = "1잔"
     const val DEFAULT_NICKNAME = "커피런1"
 
     const val TEST_MODE_REAL = 0
@@ -45,6 +43,9 @@ object Constants {
     const val DEFAULT_VALUE = 2000
     const val DEFAULT_HANGOVER_HOURS = 5 // deprecated: 음주 맥락 전용. 노카페인에서는 사용하지 않음.
     const val DEFAULT_SMOKE_OVERHEAD_MINUTES = 5 // 노카페인 오버헤드(정리/이동/준비) 분 단위
+
+    // 평균 카페인 함량(1잔 기준, mg)
+    const val CAFFEINE_MG_PER_CUP = 150
 
     val LEVEL_TIME_UNIT_MILLIS: Long get() = DAY_IN_MILLIS
     val LEVEL_TIME_UNIT_TEXT: String get() = "일"
@@ -67,7 +68,6 @@ object Constants {
             sharedPref.edit {
                 putString(PREF_SELECTED_COST, DEFAULT_COST)
                 putString(PREF_SELECTED_FREQUENCY, DEFAULT_FREQUENCY)
-                putString(PREF_SELECTED_DURATION, DEFAULT_DURATION)
                 // 첫 실행: 혹시 백업/잔존 데이터로 start_time, target_days 등이 남아있어도 초기화
                 remove(PREF_START_TIME)
                 remove(PREF_TARGET_DAYS)
@@ -89,17 +89,17 @@ object Constants {
         }
     }
 
-    fun getUserSettings(context: Context): Triple<String, String, String> {
+    fun getUserSettings(context: Context): Pair<String, String> {
         val sharedPref = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
-        val cost = sharedPref.getString(PREF_SELECTED_COST, DEFAULT_COST) ?: DEFAULT_COST
+        var cost = sharedPref.getString(PREF_SELECTED_COST, DEFAULT_COST) ?: DEFAULT_COST
         var frequency = sharedPref.getString(PREF_SELECTED_FREQUENCY, DEFAULT_FREQUENCY) ?: DEFAULT_FREQUENCY
-        var duration = sharedPref.getString(PREF_SELECTED_DURATION, DEFAULT_DURATION) ?: DEFAULT_DURATION
 
-        // 빈도 라벨 마이그레이션: 과거 값 -> 새로운 옵션명으로 치환
+        // 빈도 라벨 마이그레이션: 과거 주간 라벨 -> 일일 잔수 라벨로 치환
         val migratedFrequency = when (frequency) {
-            "주 1회 이하" -> "주 1~2회"
-            "주 2~3회" -> "주 3~4회"
-            "주 4회 이상" -> "매일"
+            // 구 주차 라벨들
+            "주 1회 이하", "주 1~2회" -> "1잔"
+            "주 2~3회", "주 3~4회" -> "2잔"
+            "주 4회 이상", "매일" -> "3잔 이상"
             else -> frequency
         }
         if (migratedFrequency != frequency) {
@@ -107,17 +107,19 @@ object Constants {
             sharedPref.edit { putString(PREF_SELECTED_FREQUENCY, migratedFrequency) }
         }
 
-        // 시간 라벨 마이그레이션: 과거 '김' 등을 새 옵션 '길게'로 치환
-        val migratedDuration = when (duration) {
-            "김", "긴" -> "길게"
-            else -> duration
+        // 비용 라벨 마이그레이션: 구-'저/중/고' -> 신-'가성비/프랜차이즈/프리미엄'
+        val migratedCost = when (cost) {
+            "저" -> "가성비"
+            "중" -> "프랜차이즈"
+            "고" -> "프리미엄"
+            else -> cost
         }
-        if (migratedDuration != duration) {
-            duration = migratedDuration
-            sharedPref.edit { putString(PREF_SELECTED_DURATION, migratedDuration) }
+        if (migratedCost != cost) {
+            cost = migratedCost
+            sharedPref.edit { putString(PREF_SELECTED_COST, migratedCost) }
         }
 
-        return Triple(cost, frequency, duration)
+        return Pair(cost, frequency)
     }
 
     private const val INSTALL_MARKER_NAME = "install_marker_v1"

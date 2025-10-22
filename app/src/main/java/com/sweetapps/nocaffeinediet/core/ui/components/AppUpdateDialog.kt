@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.DialogProperties
 
 // 앱 테마
 import com.sweetapps.nocaffeinediet.core.ui.theme.AlcoholicTimerTheme
@@ -40,7 +41,11 @@ fun AppUpdateDialog(
             if (canDismiss) {
                 onDismiss()
             }
-        }
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = canDismiss,
+            dismissOnClickOutside = canDismiss
+        )
     ) {
         Card(
             modifier = Modifier
@@ -118,14 +123,13 @@ fun AppUpdateDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (canDismiss) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text("나중에")
-                        }
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = canDismiss
+                    ) {
+                        Text("나중에")
                     }
 
                     Button(

@@ -6,6 +6,10 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,36 +30,36 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import com.sweetapps.nocaffeinediet.BuildConfig
+import com.sweetapps.nocaffeinediet.R
+import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
 import com.sweetapps.nocaffeinediet.core.ui.StandardScreenWithBottomButton
 import com.sweetapps.nocaffeinediet.core.ui.components.AppUpdateDialog
 import com.sweetapps.nocaffeinediet.core.util.AppUpdateManager
 import com.sweetapps.nocaffeinediet.core.util.Constants
+import com.sweetapps.nocaffeinediet.core.util.UpdateVersionMapper
 import com.sweetapps.nocaffeinediet.feature.run.RunActivity
-import com.google.android.play.core.install.model.AppUpdateType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 import kotlin.math.max
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
+import kotlin.math.roundToInt
 import android.graphics.Bitmap
-import com.sweetapps.nocaffeinediet.R
-import com.sweetapps.nocaffeinediet.core.ui.AppBorder
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -76,10 +80,12 @@ class StartActivity : BaseActivity() {
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
 
+        val demoFromIntent = intent?.getBooleanExtra("demo_update_ui", false) == true
+
         setContent {
             // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
             BaseScreen(applyBottomInsets = false, applySystemBars = false) {
-                StartScreenWithUpdate(appUpdateManager)
+                StartScreenWithUpdate(appUpdateManager, demoFromIntent)
             }
         }
     }
@@ -89,38 +95,75 @@ class StartActivity : BaseActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
+fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoFromIntent: Boolean = false) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 업데이트 다이얼로그 상태
+    // 업데이트 UI 상태
+    var isCheckingUpdate by remember { mutableStateOf(false) }
     var showUpdateDialog by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
+    var showOverlay by remember { mutableStateOf(false) }
 
-    // 앱 시작 시 업데이트 확인
+    // 데모 상태: 여러 번 실행 가능하도록 트리거 카운터 사용
+    var demoTrigger by remember { mutableStateOf(0) }
+    var isDemoDialog by remember { mutableStateOf(false) }
+
+    // 인텐트 데모: 진입 직후 1회 트리거
     LaunchedEffect(Unit) {
-        scope.launch {
+        if (BuildConfig.DEBUG && demoFromIntent) demoTrigger++
+    }
+
+    // 데모 트리거마다 시퀀스 실행
+    LaunchedEffect(demoTrigger) {
+        if (!BuildConfig.DEBUG) return@LaunchedEffect
+        if (demoTrigger == 0) return@LaunchedEffect
+        // 기존 다이얼로그 닫고 데모 시작
+        showUpdateDialog = false
+        isCheckingUpdate = true
+        showOverlay = true
+        delay(600)
+        val fake = 2025101001
+        availableVersionName = UpdateVersionMapper.toVersionName(fake) ?: fake.toString()
+        isDemoDialog = true
+        showOverlay = false
+        showUpdateDialog = true
+    }
+
+    // 실제 업데이트 확인 (인텐트 데모 진입 시에는 생략)
+    LaunchedEffect(Unit) {
+        if (!(BuildConfig.DEBUG && demoFromIntent)) {
+            isCheckingUpdate = true
+            // 300ms 지연 후에도 진행 중이면 오버레이 표시
+            scope.launch {
+                delay(300)
+                if (isCheckingUpdate) showOverlay = true
+            }
             appUpdateManager.checkForUpdate(
-                forceCheck = true,
+                forceCheck = false,
                 onUpdateAvailable = { info ->
                     updateInfo = info
-                    availableVersionName = info.availableVersionCode().toString()
+                    val code = info.availableVersionCode()
+                    availableVersionName = UpdateVersionMapper.toVersionName(code) ?: code.toString()
+                    isDemoDialog = false
+                    showOverlay = false
                     showUpdateDialog = true
                 },
                 onNoUpdate = {
-                    // 업데이트 없음
+                    showOverlay = false
+                    isCheckingUpdate = false
                 }
             )
         }
     }
 
-    // 업데이트 다운로드 완료 리스너: 사용자 액션(다시 시작) 시에만 설치 완료
-    LaunchedEffect(Unit) {
+    // Flexible 다운로드 완료 → 스낵바 ‘다시 시작’ 제공
+    DisposableEffect(Unit) {
         appUpdateManager.registerInstallStateListener {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.",
+                    message = "업데이트가 준비되었습니다",
                     actionLabel = "다시 시작",
                     duration = SnackbarDuration.Indefinite
                 )
@@ -129,16 +172,16 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
                 }
             }
         }
-    }
-    // 화면 소멸 시 리스너 정리
-    DisposableEffect(Unit) {
-        onDispose {
-            appUpdateManager.unregisterInstallStateListener()
-        }
+        onDispose { appUpdateManager.unregisterInstallStateListener() }
     }
 
+    val gateNavigation = isCheckingUpdate || showUpdateDialog
+
     Box(modifier = Modifier.fillMaxSize()) {
-        StartScreen()
+        StartScreen(
+            gateNavigation = gateNavigation,
+            onTitleLongPress = { if (BuildConfig.DEBUG) demoTrigger++ }
+        )
 
         // 업데이트 다이얼로그
         AppUpdateDialog(
@@ -146,21 +189,32 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             versionName = availableVersionName,
             updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
             onUpdateClick = {
+                showUpdateDialog = false
+                if (isDemoDialog) {
+                    scope.launch { snackbarHostState.showSnackbar("데모: 업데이트를 시작하지 않습니다") }
+                    isDemoDialog = false
+                    isCheckingUpdate = false
+                    return@AppUpdateDialog
+                }
                 updateInfo?.let { info ->
-                    val immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
-                    if (appUpdateManager.isMaxPostponeReached() && immediateAllowed) {
+                    val allowImmediate = appUpdateManager.isMaxPostponeReached()
+                    if (allowImmediate && appUpdateManager.isImmediateAllowed(info)) {
                         appUpdateManager.startImmediateUpdate(info)
                     } else {
                         appUpdateManager.startFlexibleUpdate(info)
                     }
                 }
-                showUpdateDialog = false
+                isCheckingUpdate = false
             },
             onDismiss = {
-                appUpdateManager.markUserPostpone()
+                if (!isDemoDialog) {
+                    appUpdateManager.markUserPostpone()
+                }
                 showUpdateDialog = false
+                isDemoDialog = false
+                isCheckingUpdate = false
             },
-            canDismiss = !appUpdateManager.isMaxPostponeReached()
+            canDismiss = !appUpdateManager.isMaxPostponeReached() || isDemoDialog
         )
 
         // 스낵바
@@ -168,22 +222,45 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // 300ms 지연 후에만 보이는 반투명 오버레이 (터치 차단)
+        if (showOverlay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { }
+            ) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = stringResource(R.string.checking_update))
+                }
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreen() {
+fun StartScreen(gateNavigation: Boolean = false, onTitleLongPress: () -> Unit = {}) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
-    if (startTime != 0L && !timerCompleted) {
+    if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
-            context.startActivity(Intent(context, RunActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
+            context.startActivity(
+                Intent(context, RunActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+            )
         }
         return
     }
@@ -210,31 +287,50 @@ fun StartScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                 border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "목표 기간 설정",
                         style = MaterialTheme.typography.titleLarge,
                         color = colorResource(id = R.color.color_title_primary),
-                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 24.dp)
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 24.dp)
+                            .combinedClickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                                onLongClick = onTitleLongPress
+                            )
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)
                     ) {
                         Card(
-                            modifier = Modifier.width(100.dp).height(56.dp),
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(56.dp),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                         ) {
-                            Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 BasicTextField(
                                     value = textFieldValue,
                                     onValueChange = { newValue ->
@@ -246,7 +342,7 @@ fun StartScreen() {
                                             finalFiltered.length > 1 && finalFiltered.startsWith("0") && !finalFiltered.startsWith("0.") -> finalFiltered.substring(1)
                                             else -> finalFiltered
                                         }
-                                        val selection = if (isTextSelected) TextRange(finalText.length) else TextRange(finalText.length)
+                                        val selection = TextRange(finalText.length)
                                         textFieldValue = TextFieldValue(text = finalText, selection = selection)
                                         isTextSelected = false
                                     },
@@ -257,7 +353,9 @@ fun StartScreen() {
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     singleLine = true,
                                     cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
-                                    modifier = Modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onFocusChanged { isFocused = it.isFocused }
                                 )
                             }
                         }
@@ -278,15 +376,12 @@ fun StartScreen() {
                 }
             }
 
-            // 카드 아래 중앙 여백을 파란 노카페인 아이콘으로 채움
             Spacer(modifier = Modifier.height(16.dp))
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                // 기존 대비 2.0배 확대
                 val iconSize = (maxWidth * 0.4f).coerceIn(120.dp, 320.dp) * 2.0f
-                // 스플래시 인셋(1/6)을 픽셀 그리드에 반올림 정렬
                 val density = LocalDensity.current
                 val insetPadding = with(density) {
                     val iconPx = iconSize.toPx()
@@ -294,15 +389,18 @@ fun StartScreen() {
                     padPxRounded.toDp()
                 }
                 Box(modifier = Modifier.size(iconSize), contentAlignment = Alignment.Center) {
-                    // 벡터를 안전하게 비트맵으로 래스터라이즈 후 최근접 샘플링 적용
                     val contentSizeDp = iconSize - insetPadding * 2
                     val (contentW, contentH) = with(density) {
                         val w = max(1, contentSizeDp.toPx().roundToInt())
-                        val h = w // 정사각 아이콘
+                        val h = w
                         w to h
                     }
                     val drawable = remember {
-                        ResourcesCompat.getDrawable(context.resources, R.drawable.ic_launcher_foreground, context.theme)
+                        ResourcesCompat.getDrawable(
+                            context.resources,
+                            R.drawable.ic_launcher_foreground,
+                            context.theme
+                        )
                     }
                     val bitmap = remember(contentW, contentH, drawable) {
                         drawable?.toBitmap(contentW, contentH, Bitmap.Config.ARGB_8888)?.asImageBitmap()
@@ -311,9 +409,11 @@ fun StartScreen() {
                         Image(
                             bitmap = bitmap,
                             contentDescription = "노카페인 아이콘",
-                            modifier = Modifier.fillMaxSize().padding(insetPadding),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(insetPadding),
                             filterQuality = FilterQuality.None,
-                            alpha = 0.3f // 더 흐리게
+                            alpha = 0.3f
                         )
                     }
                 }

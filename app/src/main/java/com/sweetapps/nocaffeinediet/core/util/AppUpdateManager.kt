@@ -2,6 +2,8 @@ package com.sweetapps.nocaffeinediet.core.util
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -43,6 +45,7 @@ class AppUpdateManager(private val activity: ComponentActivity) {
         private const val MAX_POSTPONE_COUNT = 3 // 최대 3번까지 연기 가능
         private const val REQUEST_CODE_FLEXIBLE_UPDATE = 1001
         private const val REQUEST_CODE_IMMEDIATE_UPDATE = 1002
+        private const val PLAY_STORE_PACKAGE = "com.android.vending"
     }
 
     /**
@@ -71,6 +74,23 @@ class AppUpdateManager(private val activity: ComponentActivity) {
     }
 
     /**
+     * Google Play 스토어(Play Services)가 단말에 설치되어 있는지 확인합니다.
+     */
+    fun hasPlayStore(context: Context = activity): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                context.packageManager.getPackageInfo(PLAY_STORE_PACKAGE, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(PLAY_STORE_PACKAGE, 0)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
      * 앱 업데이트 확인 및 실행
      *
      * @param forceCheck 강제로 확인 (시간 제한 무시)
@@ -83,6 +103,13 @@ class AppUpdateManager(private val activity: ComponentActivity) {
         onNoUpdate: () -> Unit = {}
     ) {
         try {
+            // Play 스토어 미존재 시 스킵 (예: 중국 ROM 등)
+            if (!hasPlayStore(activity)) {
+                Log.d(TAG, "Play 스토어 미존재로 업데이트 확인 스킵")
+                onNoUpdate()
+                return
+            }
+
             // 시간 제한 확인 (24시간마다 1회)
             if (!forceCheck && !shouldCheckForUpdate()) {
                 Log.d(TAG, "업데이트 확인 시간이 아직 안 됨")
@@ -95,12 +122,12 @@ class AppUpdateManager(private val activity: ComponentActivity) {
             // 마지막 확인 시간 업데이트
             updateLastCheckTime()
 
-            when {
-                appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE -> {
+            when (appUpdateInfo.updateAvailability()) {
+                UpdateAvailability.UPDATE_AVAILABLE -> {
                     Log.d(TAG, "업데이트 사용 가능: 버전 ${appUpdateInfo.availableVersionCode()}")
                     onUpdateAvailable(appUpdateInfo)
                 }
-                appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> {
+                UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS -> {
                     Log.d(TAG, "업데이트 진행 중")
                     // Immediate Update가 중단되었을 경우 재개
                     startImmediateUpdate(appUpdateInfo)
@@ -161,6 +188,9 @@ class AppUpdateManager(private val activity: ComponentActivity) {
             Log.e(TAG, "Immediate Update 시작 실패", e)
         }
     }
+
+    /** 즉시 업데이트 허용 여부 */
+    fun isImmediateAllowed(info: AppUpdateInfo): Boolean = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
 
     /**
      * Flexible Update 다운로드 완료 시 설치 완료

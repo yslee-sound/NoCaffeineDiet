@@ -44,6 +44,7 @@ import com.sweetapps.nocaffeinediet.feature.detail.DetailActivity
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
 import com.sweetapps.nocaffeinediet.R
 import com.sweetapps.nocaffeinediet.core.ui.AppBorder
+import com.sweetapps.nocaffeinediet.core.util.LifePlusUtils
 
 class RunActivity : BaseActivity() {
 
@@ -101,33 +102,31 @@ private fun RunScreen() {
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
     val progressTimeTextHM = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 
-    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
-    val costVal = when (selectedCost) { "저" -> 3000; "중" -> 6000; "고" -> 12000; else -> 6000 }
-    val freqVal = when (selectedFrequency) {
-        // 새 라벨
-        "주 1~2회" -> 1.5
-        "주 3~4회" -> 3.5
-        "매일" -> 7.0
-        // 구 라벨(후방 호환)
-        "주 1회 이하" -> 1.0
-        "주 2~3회" -> 2.5
-        "주 4회 이상" -> 5.0
-        else -> 1.5
+    val (selectedCost, selectedFrequency) = Constants.getUserSettings(context)
+    val costVal = when (selectedCost) {
+        "가성비" -> 1500
+        "프랜차이즈" -> 4500
+        "프리미엄" -> 7000
+        else -> 4500
     }
-    // 새 노카페인 시간 매핑: 5/10/20분 -> 시간 단위(Double)
-    val drinkHoursVal = when (selectedDuration) {
-        "짧음" -> 5.0 / 60.0
-        "보통" -> 10.0 / 60.0
-        "길게" -> 20.0 / 60.0
-        // 구 라벨(후방 호환)
-        "김", "긴" -> 20.0 / 60.0
-        else -> 10.0 / 60.0
+    // 일일 주입량(잔/일)
+    val cupsPerDay = when (selectedFrequency) {
+        "1잔" -> 1.0
+        "2잔" -> 2.0
+        "3잔 이상" -> 3.0
+        else -> 1.0
     }
     val weeks = elapsedDaysFloat / 7.0
-    val overheadHours = Constants.DEFAULT_SMOKE_OVERHEAD_MINUTES / 60.0
-    val savedMoney = remember(weeks, freqVal, costVal) { weeks * freqVal * costVal }
-    val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * (drinkHoursVal + overheadHours) }
+    val savedMoney = remember(elapsedDaysFloat, cupsPerDay, costVal) { elapsedDaysFloat * cupsPerDay * costVal }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
+    // 노카페인 달성량(mg): 경과일 × 잔/일 × 150mg
+    val savedCaffeineMg = remember(elapsedDaysFloat, cupsPerDay) { elapsedDaysFloat * cupsPerDay * Constants.CAFFEINE_MG_PER_CUP }
+
+    // LifePlus(%) 계산: 현재 진행 중 세션의 경과일만 사용 (최근 30일 누적 제외)
+    val currentSessionDays = remember(elapsedMillis) { (elapsedMillis.toDouble() / Constants.DAY_IN_MILLIS.toDouble()).coerceAtLeast(0.0) }
+    val lifePlusPercent1 = remember(currentSessionDays, selectedCost, selectedFrequency) {
+        LifePlusUtils.computeLifePlusPercentOneDecimal(currentSessionDays, selectedCost, selectedFrequency)
+    }
 
     val totalTargetMillis = (targetDays * Constants.DAY_IN_MILLIS).toLong()
     val progress = remember(elapsedMillis, totalTargetMillis) {
@@ -135,7 +134,7 @@ private fun RunScreen() {
     }
 
     val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
-    var currentIndicator by remember { mutableIntStateOf(sp.getInt(indicatorKey, 0)) }
+    var currentIndicator by remember { mutableIntStateOf(sp.getInt(indicatorKey, 0).coerceIn(0, 4)) }
 
     fun toggleIndicator() { val next = (currentIndicator + 1) % 5; currentIndicator = next; sp.edit { putInt(indicatorKey, next) } }
 
@@ -199,8 +198,9 @@ private fun RunScreen() {
                         0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
                         1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
                         2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), String.format(Locale.getDefault(), "%,.0f원", savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
-                        3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
-                        else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
+                        3 -> Triple(stringResource(id = R.string.indicator_title_life_gain), String.format(Locale.getDefault(), "%.1f%%", lifePlusPercent1), colorResource(id = R.color.color_indicator_life))
+                        4 -> Triple(stringResource(id = R.string.indicator_title_saved_caffeine), String.format(Locale.getDefault(), "%,.0f mg", savedCaffeineMg).replace(" ", ""), colorResource(id = R.color.color_indicator_days))
+                        else -> Triple(stringResource(id = R.string.indicator_title_life_gain), String.format(Locale.getDefault(), "%.1f%%", lifePlusPercent1), colorResource(id = R.color.color_indicator_life))
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
@@ -237,7 +237,7 @@ private fun RunScreen() {
                                 platformStyle = PlatformTextStyle(includeFontPadding = true)
                             )
                             val isMoney = currentIndicator == 2
-                            val isLifeGain = currentIndicator == 4
+                            val isLifeGain = false // '%': 시간 포맷 분기 비활성화
                             if (isMoney) {
                                 val numeric = valueText.replace("원", "")
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -246,30 +246,8 @@ private fun RunScreen() {
                                     Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
                                 }
                             } else if (isLifeGain) {
-                                val twoPart = Regex("""(\d+)\s*일\s*([0-9]+(?:\.[0-9]+)?)\s*시간""")
-                                val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*시간""")
-                                val m1 = twoPart.find(valueText)
-                                val m2 = if (m1 == null) onePart.find(valueText) else null
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                    if (m1 != null) {
-                                        val dStr = m1.groupValues[1]
-                                        val hStr = m1.groupValues[2]
-                                        Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "일", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                    } else if (m2 != null) {
-                                        val hStr = m2.groupValues[1]
-                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                    } else {
-                                        Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                    }
-                                }
+                                // ...existing time-splitting code (dead path)
+                                Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                             } else {
                                 Text(
                                     text = valueText,
@@ -319,11 +297,11 @@ private fun RunScreen() {
                     putExtra("elapsed_hours", elapsedHours)
                     putExtra("elapsed_minutes", elapsedMinutes)
                     putExtra("saved_money", savedMoney)
-                    putExtra("saved_hours", savedHours)
                     putExtra("life_gain_days", lifeGainDays)
                     putExtra("level_name", levelName)
                     putExtra("level_color", levelInfo.color.value.toLong())
                     putExtra("quit_timestamp", System.currentTimeMillis())
+                    putExtra("saved_caffeine_mg", savedCaffeineMg)
                 }
                 context.startActivity(intent)
             })

@@ -152,46 +152,30 @@ fun DetailScreen(
     val totalHours = totalDurationMillis / (60 * 60 * 1000.0)
     val totalDays = totalHours / 24.0
 
-    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
+    val (selectedCost, selectedFrequency) = Constants.getUserSettings(context)
 
     // 새 비용 매핑 (원)
     val costVal = when (selectedCost) {
-        "저" -> 3000
-        "중" -> 6000
-        "고" -> 12000
-        else -> 6000
+        "가성비" -> 1500
+        "프랜차이즈" -> 4500
+        "프리미엄" -> 7000
+        else -> 4500
     }
 
-    // 새 빈도 매핑 (회/주) + 구 라벨 후방 호환
-    val freqVal = when (selectedFrequency) {
-        "주 1~2회" -> 1.5
-        "주 3~4회" -> 3.5
-        "매일" -> 7.0
-        // 구 라벨
-        "주 1회 이하" -> 1.0
-        "주 2~3회" -> 2.5
-        "주 4회 이상" -> 5.0
-        else -> 1.5
+    // 일일 주입량(잔/일)
+    val cupsPerDay = when (selectedFrequency) {
+        "1잔" -> 1.0
+        "2잔" -> 2.0
+        "3잔 이상" -> 3.0
+        else -> 1.0
     }
 
-    // 새 시간 매핑: 5/10/20분 -> 시간 단위(Double) + 구 라벨 후방 호환
-    val drinkHoursVal = when (selectedDuration) {
-        "짧음" -> 5.0 / 60.0
-        "보통" -> 10.0 / 60.0
-        "길게" -> 20.0 / 60.0
-        // 구 라벨
-        "김", "긴" -> 20.0 / 60.0
-        else -> 10.0 / 60.0
-    }
-
-    val overheadHours = Constants.DEFAULT_SMOKE_OVERHEAD_MINUTES / 60.0
-
-    val exactWeeks = totalHours / (24.0 * 7.0)
-    val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
-    val savedHoursExact = (exactWeeks * freqVal * (drinkHoursVal + overheadHours))
+    val savedMoney = (totalDays * cupsPerDay * costVal).roundToInt()
 
     val achievementRate = ((totalDays / targetDays) * 100.0).let { rate -> if (rate > 100) 100.0 else rate }
     val lifeExpectancyIncrease = totalDays / 30.0
+    // 절약한 카페인 섭취량(mg): 총일수 × 잔/일 × 150mg
+    val savedCaffeineMg = totalDays * cupsPerDay * Constants.CAFFEINE_MG_PER_CUP
 
     val density = LocalDensity.current
     CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
@@ -387,10 +371,10 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                 ) {
                     com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
-                        label = stringResource(id = R.string.stat_saved_hours_short),
+                        value = String.format(Locale.getDefault(), "%,.0f mg", savedCaffeineMg).replace(" ", ""),
+                        label = stringResource(id = R.string.indicator_title_saved_caffeine),
                         modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_hours)
+                        valueColor = colorResource(id = R.color.color_indicator_days)
                     )
                     com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
                         value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
@@ -430,21 +414,12 @@ fun DetailScreen(
                                 } catch (e: Exception) {
                                     Log.e("DetailActivity", "삭제 중 오류", e)
                                 }
-                                val activity = (context as? DetailActivity)
-                                activity?.setResult(Activity.RESULT_OK)
-                                activity?.finish()
                             }
-                        ) {
-                            Text(stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
-                        }
+                        ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
-                            Text(stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
-                        }
-                    },
-                    containerColor = Color.White,
-                    shape = RoundedCornerShape(16.dp)
+                        TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(id = R.string.dialog_cancel)) }
+                    }
                 )
             }
         }

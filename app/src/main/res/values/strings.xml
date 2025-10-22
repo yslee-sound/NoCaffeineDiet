@@ -20,13 +20,13 @@
     <string name="run_title">노카페인 진행</string>
     <string name="stat_goal_days">목표일</string>
     <string name="stat_level">Level</string>
-    <string name="stat_time">시간</string>
+    <string name="stat_time">노카페인</string>
 
     <string name="indicator_title_days">노카페인 일수</string>
-    <string name="indicator_title_time">시간</string>
+    <string name="indicator_title_time">노카페인 시간</string>
     <string name="indicator_title_saved_money">절약한 금액</string>
-    <string name="indicator_title_saved_hours">절약한 시간</string>
-    <string name="indicator_title_life_gain">기대 수명+</string>
+    <string name="indicator_title_life_gain">삶의 질+</string>
+    <string name="indicator_title_saved_caffeine">노카페인 달성량</string>
     <string name="tap_to_switch_indicator">탭하여 다른 지표 보기</string>
 
     <string name="cd_stop">정지</string>
@@ -40,7 +40,6 @@
     <string name="quit_confirm_subtitle">지금까지 잘 해오셨는데&#8230;</string>
     <string name="stat_total_days">총 노카페인 일수</string>
     <string name="stat_saved_money_short">절약한 금액</string>
-    <string name="stat_saved_hours_short">절약한 시간</string>
 
     <!-- Detail screen -->
     <string name="detail_title">노카페인 기록 상세</string>
@@ -76,4 +75,7 @@
 
     <string name="action_copy">복사</string>
     <string name="toast_copied">주소를 복사했습니다.</string>
+
+    <!-- Update UI -->
+    <string name="checking_update">업데이트 확인 중...</string>
 </resources>

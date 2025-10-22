@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,10 @@ import com.sweetapps.nocaffeinediet.feature.settings.SettingsActivity
 import com.sweetapps.nocaffeinediet.feature.start.StartActivity
 import kotlinx.coroutines.launch
 import com.sweetapps.nocaffeinediet.core.util.Constants.DEFAULT_NICKNAME
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import kotlinx.coroutines.delay
+import androidx.compose.ui.viewinterop.AndroidView
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -82,7 +88,7 @@ abstract class BaseActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun BaseScreen(
-        applyBottomInsets: Boolean = true,
+        applyBottomInsets: Boolean = false,
         applySystemBars: Boolean = true,
         showBackButton: Boolean = false,
         onBackClick: (() -> Unit)? = null,
@@ -92,6 +98,8 @@ abstract class BaseActivity : ComponentActivity() {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
             val currentNickname by nicknameState
+            val focusManager = LocalFocusManager.current
+            val keyboardController = LocalSoftwareKeyboardController.current
 
             val blurRadius by animateFloatAsState(
                 targetValue = if (drawerState.targetValue == DrawerValue.Open) 8f else 0f,
@@ -99,11 +107,32 @@ abstract class BaseActivity : ComponentActivity() {
                 label = "blur"
             )
 
+            // 드로어 입력 가드(애니메이션 중/닫힘 직후 그레이스 타임)
+            var drawerInputGuardActive by remember { mutableStateOf(false) }
+            val drawerGuardGraceMs = 200L
+            LaunchedEffect(drawerState) {
+                snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
+                    .collect { (isAnimating, current, target) ->
+                        if (isAnimating || target != DrawerValue.Closed || current != DrawerValue.Closed) {
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
+                            drawerInputGuardActive = true
+                        } else {
+                            drawerInputGuardActive = true
+                            delay(drawerGuardGraceMs)
+                            drawerInputGuardActive = false
+                        }
+                    }
+            }
+
             ModalNavigationDrawer(
                 drawerState = drawerState,
                 drawerContent = {
                     ModalDrawerSheet(
-                        modifier = Modifier.fillMaxWidth(0.8f),
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .statusBarsPadding()
+                            .navigationBarsPadding(),
                         drawerContainerColor = MaterialTheme.colorScheme.surface,
                         drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                     ) {
@@ -184,6 +213,9 @@ abstract class BaseActivity : ComponentActivity() {
                                                     if (showBackButton) {
                                                         onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
                                                     } else {
+                                                        // 드로어 열기 전에 포커스/키보드 정리
+                                                        focusManager.clearFocus(force = true)
+                                                        keyboardController?.hide()
                                                         scope.launch { drawerState.open() }
                                                     }
                                                 }
@@ -238,6 +270,22 @@ abstract class BaseActivity : ComponentActivity() {
                                 .then(insetModifier)
                                 .blur(radius = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) blurRadius.dp else 0.dp)
                         ) { content() }
+
+                        // 드로어 입력 가드: 애니메이션 중 및 닫힘 직후 포인터 이벤트 전체 소비 + 접근성 포커스 차단
+                        if (drawerInputGuardActive) {
+                            AndroidView(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clearAndSetSemantics { },
+                                factory = { context ->
+                                    android.view.View(context).apply {
+                                        isClickable = true
+                                        isFocusable = true
+                                        setOnTouchListener { _, _ -> true }
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }

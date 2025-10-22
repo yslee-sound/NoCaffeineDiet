@@ -36,15 +36,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Locale
 import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
 import com.sweetapps.nocaffeinediet.core.ui.StandardScreenWithBottomButton
 import com.sweetapps.nocaffeinediet.core.ui.LayoutConstants
-import com.sweetapps.nocaffeinediet.core.util.FormatUtils
-import com.sweetapps.nocaffeinediet.feature.start.StartActivity
+import com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCardValueUnit
 import com.sweetapps.nocaffeinediet.core.ui.AppElevation
-import com.sweetapps.nocaffeinediet.R
 import com.sweetapps.nocaffeinediet.core.ui.AppBorder
+import com.sweetapps.nocaffeinediet.R
+import com.sweetapps.nocaffeinediet.core.util.Constants
+import com.sweetapps.nocaffeinediet.core.util.LifePlusUtils
+import java.util.Locale
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -64,10 +65,10 @@ fun QuitScreen() {
     val elapsedHours = intent?.getIntExtra("elapsed_hours", 0) ?: 0
     val elapsedMinutes = intent?.getIntExtra("elapsed_minutes", 0) ?: 0
     val savedMoney = intent?.getDoubleExtra("saved_money", 0.0) ?: 0.0
-    val savedHours = intent?.getDoubleExtra("saved_hours", 0.0) ?: 0.0
-    val lifeGainDays = intent?.getDoubleExtra("life_gain_days", 0.0) ?: 0.0
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val targetDays = sharedPref.getFloat("target_days", 30f)
+    // 새 지표: 노카페인 달성량(mg)
+    val savedCaffeineMg = intent?.getDoubleExtra("saved_caffeine_mg", Double.NaN) ?: Double.NaN
 
     var isPressed by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -110,8 +111,7 @@ fun QuitScreen() {
                 elapsedHours = elapsedHours,
                 elapsedMinutes = elapsedMinutes,
                 savedMoney = savedMoney,
-                savedHours = savedHours,
-                lifeGainDays = lifeGainDays
+                savedCaffeineMg = savedCaffeineMg
             )
         },
         bottomButton = {
@@ -159,10 +159,10 @@ fun QuitScreen() {
                                                 remove("start_time")
                                                 putBoolean("timer_completed", true)
                                             }
-                                            val intent = Intent(context, StartActivity::class.java).apply {
-                                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                            }
-                                            context.startActivity(intent)
+                                            val intent = Intent(context, com.sweetapps.nocaffeinediet.feature.start.StartActivity::class.java).apply {
+                                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                             }
+                                             context.startActivity(intent)
                                         }
                                     }
                                     waitForUpOrCancellation(); isPressed = false; job.cancel()
@@ -199,9 +199,18 @@ fun StatisticsCardsSection(
     elapsedHours: Int,
     elapsedMinutes: Int,
     savedMoney: Double,
-    savedHours: Double,
-    lifeGainDays: Double
+    savedCaffeineMg: Double
 ) {
+    val context = LocalContext.current
+    // '삶의 질+' 계산: 현재 진행 중 세션 경과일만 사용 (최근 30일 누적 제외)
+    val (userCost, userFrequency) = remember(context) { Constants.getUserSettings(context) }
+    val currentSessionDays = remember(elapsedDays, elapsedHours, elapsedMinutes) {
+        elapsedDays.toDouble() + (elapsedHours.toDouble() / 24.0) + (elapsedMinutes.toDouble() / (24.0 * 60.0))
+    }
+    val lifePlusPercent1 = remember(currentSessionDays, userCost, userFrequency) {
+        LifePlusUtils.computeLifePlusPercentOneDecimal(currentSessionDays, userCost, userFrequency)
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
@@ -211,14 +220,16 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
+            DetailStatCardValueUnit(
+                valueNumeric = String.format(Locale.getDefault(), "%.1f", totalDaysDecimal),
+                unit = "일",
                 label = stringResource(id = R.string.stat_total_days),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_days)
             )
-            com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
+            DetailStatCardValueUnit(
+                valueNumeric = String.format(Locale.getDefault(), "%,.0f", savedMoney).replace(" ", ""),
+                unit = "원",
                 label = stringResource(id = R.string.stat_saved_money_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_money)
@@ -228,17 +239,21 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
-                label = stringResource(id = R.string.stat_saved_hours_short),
-                modifier = Modifier.weight(1f),
-                valueColor = colorResource(id = R.color.color_indicator_hours)
-            )
-            com.sweetapps.nocaffeinediet.feature.detail.components.DetailStatCard(
-                value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
+            DetailStatCardValueUnit(
+                valueNumeric = String.format(Locale.getDefault(), "%.1f", lifePlusPercent1),
+                unit = "%",
                 label = stringResource(id = R.string.indicator_title_life_gain),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_life)
+            )
+            // 저장된 값이 없는 구버전 인텐트 대비: NaN이면 0mg로 표기
+            val caffeineValue = if (savedCaffeineMg.isNaN()) 0.0 else savedCaffeineMg
+            DetailStatCardValueUnit(
+                valueNumeric = String.format(Locale.getDefault(), "%,.0f", caffeineValue).replace(" ", ""),
+                unit = "mg",
+                label = stringResource(id = R.string.indicator_title_saved_caffeine),
+                modifier = Modifier.weight(1f),
+                valueColor = colorResource(id = R.color.color_indicator_days)
             )
         }
     }

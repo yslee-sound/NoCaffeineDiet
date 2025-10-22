@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +35,6 @@ import com.sweetapps.nocaffeinediet.core.ui.BaseActivity
 import com.sweetapps.nocaffeinediet.core.util.Constants
 import com.sweetapps.nocaffeinediet.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
-import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import com.sweetapps.nocaffeinediet.R
 
@@ -79,8 +79,6 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
     // backgroundBrush 제거 (BaseScreen 배경 사용)
 
     Column(
@@ -93,7 +91,7 @@ fun LevelScreen() {
         // 변경: float 경과 일수 전달
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
-        Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -111,7 +109,10 @@ private fun CurrentLevelCard(
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
-        Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.padding(horizontal = LevelUiTokens.CardPaddingH, vertical = LevelUiTokens.CardPaddingV),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -199,51 +200,76 @@ private fun ProgressToNextLevel(
     }
 
     val alpha by animateFloatAsState(
-        targetValue = if (isVisible) 1f else 0.3f,
-        animationSpec = tween(durationMillis = 500, easing = androidx.compose.animation.core.FastOutSlowInEasing),
-        label = "indicator_blink"
+        targetValue = if (isVisible) 1f else 0.6f,
+        animationSpec = tween(durationMillis = 800),
+        label = "level_blink"
     )
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            Text(text = "다음 레벨까지", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(if (remainingDays > 0 && isSobrietyActive) currentLevel.color.copy(alpha = alpha) else Color(0xFF999999))
-            )
-        }
+    val percentText = String.format("%.1f%%", (progress * 100f).coerceIn(0f, 100f))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFFE0E0E0))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            // .graphicsLayer(alpha = alpha) // 전체 깜빡임 제거
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(durationMillis = 1000), label = "progress")
+            Text(
+                text = "다음 레벨까지",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.width(6.dp))
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedProgress)
-                    .background(Brush.horizontalGradient(colors = listOf(nextLevel.color.copy(alpha = 0.7f), nextLevel.color)))
+                    .size(LevelUiTokens.IndicatorDot)
+                    .clip(CircleShape)
+                    .background(currentLevel.color.copy(alpha = 0.6f))
+                    .graphicsLayer(alpha = alpha) // 인디케이터 점만 깜빡이도록 적용
             )
         }
+        Spacer(Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = String.format(Locale.getDefault(), "%.1f%%", progress * 100), style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
-            Text(text = remainingText, style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
+        // 진행 바(트랙+채움) — 바 유효 폭을 줄이기 위해 추가 가로 패딩 적용
+        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = LevelUiTokens.ProgressInnerHPadding)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(LevelUiTokens.ProgressHeight)
+                    .clip(RoundedCornerShape(LevelUiTokens.ProgressCorner))
+                    .background(color = Color(0xFFE0E0E0))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .background(currentLevel.color)
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) { }
+        // 하단 텍스트도 바 폭과 정렬되도록 동일 패딩 적용
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = LevelUiTokens.ProgressInnerHPadding),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = percentText,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = remainingText,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
@@ -360,4 +386,13 @@ fun LevelScreenPreview() {
     Scaffold { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) { LevelScreen() }
     }
+}
+
+private object LevelUiTokens {
+    val CardPaddingH = 16.dp
+    val CardPaddingV = 32.dp
+    val ProgressInnerHPadding = 16.dp
+    val ProgressHeight = 8.dp
+    val ProgressCorner = 4.dp
+    val IndicatorDot = 6.dp
 }

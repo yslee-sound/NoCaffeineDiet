@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sweetapps.nocaffeinediet.core.model.SobrietyRecord
 import com.sweetapps.nocaffeinediet.core.util.PercentUtils
-import java.util.*
+import java.util.Calendar
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -107,10 +107,6 @@ fun StatisticsCardsSection(
         } else true
     }
 
-    // 변경된 성공률 계산:
-    // 주간(weekStart/end 존재)일 때: (해당 주 노카페인 성공 일수 합 / 7일) * 100
-    //     - 노카페인 성공 일수: 주 범위와 기록 겹치는 일수 총합 (최대 7일로 cap)
-    // 그 외(월간 등): 기존 로직(시도별 목표 진행률 평균) 유지
     val successRate = if (weekStart != null && weekEnd != null) {
         val weeklySuccessDays = filteredRecords.sumOf { record ->
             val overlapStart = max(record.startTime, weekStart)

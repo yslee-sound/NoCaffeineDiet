@@ -83,7 +83,7 @@ android {
     }
     buildFeatures {
         compose = true
-        // 필요시 buildConfig true (기본 true) / viewBinding 등 미사용
+        buildConfig = true
     }
 
     lint {
