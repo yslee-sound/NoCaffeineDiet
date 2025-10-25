@@ -1,6 +1,7 @@
 package com.sweetapps.nocaffeinediet.feature.about
 
 import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,11 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,7 +43,6 @@ class AboutLicensesActivity : BaseActivity() {
 @Composable
 private fun AboutLicensesScreen() {
     val context = LocalContext.current
-    val clipboard = LocalClipboardManager.current
     val ccByUrl = "https://creativecommons.org/licenses/by/4.0/"
     val sourceUrl = "https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set"
 
@@ -81,7 +79,8 @@ private fun AboutLicensesScreen() {
                         Text(
                             text = stringResource(R.string.action_copy),
                             modifier = Modifier.clickable {
-                                clipboard.setText(AnnotatedString(sourceUrl))
+                                val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                cm.setPrimaryClip(ClipData.newPlainText("source", sourceUrl))
                                 Toast.makeText(context, context.getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
                             },
                             style = MaterialTheme.typography.labelSmall,

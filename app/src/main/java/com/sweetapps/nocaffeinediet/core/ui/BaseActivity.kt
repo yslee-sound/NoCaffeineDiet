@@ -1,9 +1,11 @@
+@file:Suppress("unused")
 package com.sweetapps.nocaffeinediet.core.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -55,6 +57,7 @@ import android.view.MotionEvent
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
+    private lateinit var backPressedCallback: OnBackPressedCallback
 
     // Ensure declaration before first usage
     private fun getNickname(): String {
@@ -70,6 +73,26 @@ abstract class BaseActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         nicknameState.value = getNickname()
+
+        // Predictive Back 호환: 공통 뒤로가기 처리 콜백 등록
+        backPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when (this@BaseActivity) {
+                    is RecordsActivity,
+                    is LevelActivity,
+                    is SettingsActivity,
+                    is AboutActivity -> navigateToMainHome()
+                    is RunActivity -> startActivity(Intent(this@BaseActivity, QuitActivity::class.java))
+                    else -> {
+                        // 기본 동작으로 위임
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
+                    }
+                }
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, backPressedCallback)
     }
 
     override fun onResume() {
@@ -357,24 +380,6 @@ abstract class BaseActivity : ComponentActivity() {
         }
         startActivity(intent)
         finish()
-    }
-
-    @Suppress("OVERRIDE_DEPRECATION")
-    override fun onBackPressed() {
-        when (this) {
-            is RecordsActivity,
-            is LevelActivity,
-            is SettingsActivity,
-            is AboutActivity -> {
-                navigateToMainHome()
-            }
-            is RunActivity -> {
-                // 러닝 화면: 뒤로가기 시 종료 확인 화면으로 이동
-                val intent = Intent(this, QuitActivity::class.java)
-                startActivity(intent)
-            }
-            else -> super.onBackPressed()
-        }
     }
 
     protected abstract fun getScreenTitle(): String

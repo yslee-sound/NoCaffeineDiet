@@ -3,6 +3,7 @@ package com.sweetapps.nocaffeinediet.feature.settings
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,10 @@ class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(applyBottomInsets = false) { SettingsScreen() } }
+        setContent {
+            BackHandler(enabled = true) { navigateToMainHome() }
+            BaseScreen(applyBottomInsets = false) { SettingsScreen() }
+        }
     }
 }
 
