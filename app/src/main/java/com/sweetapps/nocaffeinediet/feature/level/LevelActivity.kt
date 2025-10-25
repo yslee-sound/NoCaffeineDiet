@@ -2,6 +2,7 @@ package com.sweetapps.nocaffeinediet.feature.level
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,6 +46,7 @@ class LevelActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            BackHandler(enabled = true) { navigateToMainHome() }
             BaseScreen(applyBottomInsets = false) { LevelScreen() }
         }
     }

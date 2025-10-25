@@ -3,6 +3,7 @@ package com.sweetapps.nocaffeinediet.feature.records
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ class RecordsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            BackHandler(enabled = true) { navigateToMainHome() }
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
                 BaseScreen(applyBottomInsets = false) {

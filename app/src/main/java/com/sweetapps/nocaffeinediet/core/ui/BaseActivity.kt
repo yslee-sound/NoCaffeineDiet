@@ -8,7 +8,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,14 +37,21 @@ import com.sweetapps.nocaffeinediet.core.ui.theme.AlcoholicTimerTheme
 import com.sweetapps.nocaffeinediet.feature.level.LevelActivity
 import com.sweetapps.nocaffeinediet.feature.profile.NicknameEditActivity
 import com.sweetapps.nocaffeinediet.feature.run.RunActivity
+import com.sweetapps.nocaffeinediet.feature.run.QuitActivity
 import com.sweetapps.nocaffeinediet.feature.settings.SettingsActivity
 import com.sweetapps.nocaffeinediet.feature.start.StartActivity
+import com.sweetapps.nocaffeinediet.feature.records.RecordsActivity
+import com.sweetapps.nocaffeinediet.feature.records.AllRecordsActivity
+import com.sweetapps.nocaffeinediet.feature.detail.DetailActivity
+import com.sweetapps.nocaffeinediet.feature.about.AboutActivity
+import com.sweetapps.nocaffeinediet.feature.about.AboutLicensesActivity
 import kotlinx.coroutines.launch
 import com.sweetapps.nocaffeinediet.core.util.Constants.DEFAULT_NICKNAME
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
+import android.view.MotionEvent
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -72,16 +78,12 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     // Returns the drawer menu title that matches current screen, or null if none
-    private fun currentDrawerSelection(): String? = when (this) {
-        is RunActivity, is StartActivity,
-        is com.sweetapps.nocaffeinediet.feature.run.QuitActivity -> "노카페인"
-        is com.sweetapps.nocaffeinediet.feature.records.RecordsActivity,
-        is com.sweetapps.nocaffeinediet.feature.records.AllRecordsActivity,
-        is com.sweetapps.nocaffeinediet.feature.detail.DetailActivity -> "기록"
-        is LevelActivity -> "레벨"
-        is SettingsActivity -> "설정"
-        is com.sweetapps.nocaffeinediet.feature.about.AboutActivity,
-        is com.sweetapps.nocaffeinediet.feature.about.AboutLicensesActivity -> "앱 정보"
+    private fun currentDrawerSelection(): String? = when (javaClass) {
+        RunActivity::class.java, StartActivity::class.java, QuitActivity::class.java -> "노카페인"
+        RecordsActivity::class.java, AllRecordsActivity::class.java, DetailActivity::class.java -> "기록"
+        LevelActivity::class.java -> "레벨"
+        SettingsActivity::class.java -> "설정"
+        AboutActivity::class.java, AboutLicensesActivity::class.java -> "앱 정보"
         else -> null
     }
 
@@ -281,7 +283,13 @@ abstract class BaseActivity : ComponentActivity() {
                                     android.view.View(context).apply {
                                         isClickable = true
                                         isFocusable = true
-                                        setOnTouchListener { _, _ -> true }
+                                        setOnTouchListener { v, event ->
+                                            if (event.action == MotionEvent.ACTION_UP) {
+                                                v.performClick()
+                                            }
+                                            true
+                                        }
+                                        setOnClickListener { /* consume */ }
                                     }
                                 }
                             )
@@ -303,13 +311,13 @@ abstract class BaseActivity : ComponentActivity() {
                     if (this !is StartActivity) navigateToActivity(StartActivity::class.java)
                 }
             }
-            "기록" -> if (this !is com.sweetapps.nocaffeinediet.feature.records.RecordsActivity) {
-                navigateToActivity(com.sweetapps.nocaffeinediet.feature.records.RecordsActivity::class.java)
+            "기록" -> if (this !is RecordsActivity) {
+                navigateToActivity(RecordsActivity::class.java)
             }
             "레벨" -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
             "설정" -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
-            "앱 정보" -> if (this !is com.sweetapps.nocaffeinediet.feature.about.AboutActivity) {
-                navigateToActivity(com.sweetapps.nocaffeinediet.feature.about.AboutActivity::class.java)
+            "앱 정보" -> if (this !is AboutActivity) {
+                navigateToActivity(AboutActivity::class.java)
             }
         }
     }
@@ -317,15 +325,56 @@ abstract class BaseActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
     private fun navigateToActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
+        // 문서 방안 2 적용: 이미 스택에 있는 대상이면 위의 액티비티 제거 및 재사용
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         startActivity(intent)
-        overridePendingTransition(0, 0)
     }
 
     @Suppress("DEPRECATION")
     private fun navigateToNicknameEdit() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
-        overridePendingTransition(0, 0)
+    }
+
+    // 문서 스펙: 공통 메인 홈 복귀 로직
+    @Suppress("unused", "DEPRECATION")
+    protected fun navigateToMainHome() {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val isRunning = startTime > 0
+        val targetActivity = if (isRunning) RunActivity::class.java else StartActivity::class.java
+
+        // 이미 메인 홈이면 아무것도 하지 않음
+        if ((isRunning && this is RunActivity) || (!isRunning && this is StartActivity)) {
+            return
+        }
+
+        val intent = Intent(this, targetActivity).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            if (targetActivity == StartActivity::class.java) {
+                putExtra("skip_splash", true)
+            }
+        }
+        startActivity(intent)
+        finish()
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION")
+    override fun onBackPressed() {
+        when (this) {
+            is RecordsActivity,
+            is LevelActivity,
+            is SettingsActivity,
+            is AboutActivity -> {
+                navigateToMainHome()
+            }
+            is RunActivity -> {
+                // 러닝 화면: 뒤로가기 시 종료 확인 화면으로 이동
+                val intent = Intent(this, QuitActivity::class.java)
+                startActivity(intent)
+            }
+            else -> super.onBackPressed()
+        }
     }
 
     protected abstract fun getScreenTitle(): String

@@ -22,7 +22,8 @@
             android:name="com.sweetapps.nocaffeinediet.feature.start.StartActivity"
             android:exported="true"
             android:theme="@style/Theme.NoCaffeineDiet.Splash"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -61,7 +62,8 @@
         <activity
             android:name="com.sweetapps.nocaffeinediet.feature.run.RunActivity"
             android:exported="false"
-            android:theme="@style/Theme.NoCaffeineDiet" />
+            android:theme="@style/Theme.NoCaffeineDiet"
+            android:launchMode="singleTask" />
 
         <!-- 노카페인 종료 확인 화면 -->
         <activity

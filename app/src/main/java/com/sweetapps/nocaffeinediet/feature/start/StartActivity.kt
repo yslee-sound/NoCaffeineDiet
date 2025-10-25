@@ -4,6 +4,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,12 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,8 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -59,7 +56,6 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.roundToInt
-import android.graphics.Bitmap
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -83,6 +79,24 @@ class StartActivity : BaseActivity() {
         val demoFromIntent = intent?.getBooleanExtra("demo_update_ui", false) == true
 
         setContent {
+            var showExitDialog by remember { mutableStateOf(false) }
+            BackHandler(enabled = true) { showExitDialog = true }
+
+            if (showExitDialog) {
+                AlertDialog(
+                    onDismissRequest = { showExitDialog = false },
+                    title = { Text("앱을 종료하시겠어요?") },
+                    text = { Text("진행 중인 설정은 저장되지 않을 수 있어요.") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showExitDialog = false
+                            finishAffinity()
+                        }) { Text("종료") }
+                    },
+                    dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text("취소") } }
+                )
+            }
+
             // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
             BaseScreen(applyBottomInsets = false, applySystemBars = false) {
                 StartScreenWithUpdate(appUpdateManager, demoFromIntent)
@@ -269,7 +283,6 @@ fun StartScreen(gateNavigation: Boolean = false, onTitleLongPress: () -> Unit = 
         mutableStateOf(TextFieldValue(text = "30", selection = TextRange(0, 2)))
     }
     val isValid by remember { derivedStateOf { textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false } }
-    var isTextSelected by remember { mutableStateOf(true) }
     var isFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(isFocused) {
@@ -277,7 +290,6 @@ fun StartScreen(gateNavigation: Boolean = false, onTitleLongPress: () -> Unit = 
             delay(50)
             val len = textFieldValue.text.length
             textFieldValue = textFieldValue.copy(selection = TextRange(0, len))
-            isTextSelected = true
         }
     }
 
@@ -344,7 +356,6 @@ fun StartScreen(gateNavigation: Boolean = false, onTitleLongPress: () -> Unit = 
                                         }
                                         val selection = TextRange(finalText.length)
                                         textFieldValue = TextFieldValue(text = finalText, selection = selection)
-                                        isTextSelected = false
                                     },
                                     textStyle = MaterialTheme.typography.headlineLarge.copy(
                                         color = colorResource(id = R.color.color_indicator_days),
@@ -382,40 +393,16 @@ fun StartScreen(gateNavigation: Boolean = false, onTitleLongPress: () -> Unit = 
                 contentAlignment = Alignment.Center
             ) {
                 val iconSize = (maxWidth * 0.4f).coerceIn(120.dp, 320.dp) * 2.0f
-                val density = LocalDensity.current
-                val insetPadding = with(density) {
-                    val iconPx = iconSize.toPx()
-                    val padPxRounded = (iconPx / 8f).roundToInt()
-                    padPxRounded.toDp()
-                }
+                val insetPadding = iconSize / 8f
                 Box(modifier = Modifier.size(iconSize), contentAlignment = Alignment.Center) {
-                    val contentSizeDp = iconSize - insetPadding * 2
-                    val (contentW, contentH) = with(density) {
-                        val w = max(1, contentSizeDp.toPx().roundToInt())
-                        val h = w
-                        w to h
-                    }
-                    val drawable = remember {
-                        ResourcesCompat.getDrawable(
-                            context.resources,
-                            R.drawable.ic_launcher_foreground,
-                            context.theme
-                        )
-                    }
-                    val bitmap = remember(contentW, contentH, drawable) {
-                        drawable?.toBitmap(contentW, contentH, Bitmap.Config.ARGB_8888)?.asImageBitmap()
-                    }
-                    if (bitmap != null) {
-                        Image(
-                            bitmap = bitmap,
-                            contentDescription = "노카페인 아이콘",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(insetPadding),
-                            filterQuality = FilterQuality.None,
-                            alpha = 0.3f
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "노카페인 아이콘",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(insetPadding),
+                        alpha = 0.3f
+                    )
                 }
             }
         },
