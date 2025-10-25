@@ -19,8 +19,8 @@ android {
     namespace = "com.sweetapps.nocaffeinediet"
     compileSdk = 36
 
-    val releaseVersionCode = 2025102200
-    val releaseVersionName = "1.0.1"
+    val releaseVersionCode = 2025102500
+    val releaseVersionName = "1.0.2"
 
     defaultConfig {
         applicationId = "com.sweetapps.nocaffeinediet"
