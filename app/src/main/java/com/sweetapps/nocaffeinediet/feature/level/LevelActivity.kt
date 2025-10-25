@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +169,6 @@ private fun CurrentLevelCard(
 
                 ProgressToNextLevel(
                     currentLevel = currentLevel,
-                    nextLevel = nextLevel,
                     progress = progress,
                     remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0),
                     remainingText = remainingText,
@@ -184,7 +182,6 @@ private fun CurrentLevelCard(
 @Composable
 private fun ProgressToNextLevel(
     currentLevel: LevelDefinitions.LevelInfo,
-    nextLevel: LevelDefinitions.LevelInfo,
     progress: Float,
     remainingDays: Int,
     remainingText: String,
@@ -214,7 +211,6 @@ private fun ProgressToNextLevel(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // .graphicsLayer(alpha = alpha) // 전체 깜빡임 제거
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
